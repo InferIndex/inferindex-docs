@@ -53,8 +53,8 @@ Pour un modèle fermé, tous les revendeurs comptent, pas seulement le lab.
 On garde ensuite **un seul prix par fournisseur** (son plus bas), et le prix de référence du modèle est la **médiane
 des trois fournisseurs les moins chers**. **Un modèle qui a moins de 3 fournisseurs n'a pas de prix de référence.**
 
-Les prix en devise étrangère sont convertis en dollars au dernier taux de référence de la BCE publié au plus tard le
-jour mesuré (pour un lundi 00:00 UTC, en pratique celui du vendredi précédent).
+Les prix en devise étrangère sont convertis en dollars au dernier taux de référence de la BCE publié avant l'instant
+mesuré (daté au plus tard la veille ; pour une publication du lundi 00:00 UTC, le taux du vendredi précédent).
 
 Dans la série officielle, la référence d'un modèle est son prix de liste chez le lab (voir *Deux séries*) : hors
 remise, niveau standard, région la moins chère. Les exclusions de la série de marché et le minimum de 3 fournisseurs
