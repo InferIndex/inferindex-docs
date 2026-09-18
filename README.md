@@ -11,16 +11,16 @@ This repository holds the public documentation, examples and (eventually) a clie
 backend itself — collection, parsers, data model — lives in a separate private repository.
 
 ```bash
-curl "https://api.inferindex.dev/cheapest?model=deepseek-v3"
+curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2"
 ```
 
-_Example response as of 2026-09-15 — prices, providers and statuses change._
+_Example response as of 2026-09-18 — prices, providers and statuses change._
 
 ```json
 {
-  "query": "deepseek-v3",
+  "query": "deepseek/deepseek-v3.2",
   "model": { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek: DeepSeek V3.2" },
-  "other_matches": ["deepseek/deepseek-v3.2-exp", "deepseek/deepseek-v3.1-terminus"],
+  "other_matches": ["deepseek/deepseek-v3.2-exp", "deepseek/deepseek-v3.2-exp-thinking"],
   "sort": "blended",
   "cheapest": {
     "provider": "Nous Portal",
@@ -32,6 +32,7 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
     "blended_per_1M": 0.234,
     "currency": "USD",
     "quantization": "unknown",
+    "quantization_source": "unknown",
     "context_length": 163840,
     "promo": false,
     "also_via": [],
@@ -39,7 +40,7 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
   },
   "offers": [
     { "provider": "Nous Portal", "via": "nous", "blended_per_1M": 0.234, "…": "…" },
-    { "provider": "AtlasCloud", "via": "direct", "blended_per_1M": 0.29, "also_via": ["aggregator"], "…": "…" }
+    { "provider": "GMICloud", "via": "aggregator", "blended_per_1M": 0.234, "…": "…" }
   ],
   "hidden_tiers": { "flex": 1 },
   "filters_unknown": {},
@@ -104,9 +105,9 @@ not as a guarantee of what you will be billed:
 
 | Route | What it does |
 |---|---|
-| `GET /cheapest?model=deepseek-v3` | Cheapest offer across all active sources, and every matching offer deduplicated and sorted |
-| `GET /resellers?model=deepseek-v3.2` | Current prices across every reseller (direct and via aggregators), one line per source, paginated beyond 100 offers |
-| `GET /history?model=deepseek-v3.2&days=30&granularity=day` | Price history, paginated by cursor |
+| `GET /cheapest?model=deepseek/deepseek-v3.2` | Cheapest offer across all active sources, and every matching offer deduplicated and sorted |
+| `GET /resellers?model=deepseek/deepseek-v3.2` | Current prices across every reseller (direct and via aggregators), one line per source, paginated beyond 100 offers |
+| `GET /history?model=deepseek/deepseek-v3.2&days=30&granularity=day` | Price history, paginated by cursor |
 | `GET /models?search=deepseek` | Search tracked models |
 | `GET /health/live` | Liveness only: the service is up, no database access |
 | `GET /health/ready` | Readiness: data freshness and scheduler health, see below |
