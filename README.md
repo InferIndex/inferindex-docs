@@ -192,6 +192,7 @@ look up prices for you:
 
 - **Endpoint**: `https://mcp.inferindex.dev/mcp` (Streamable HTTP)
   (`https://api.inferindex.dev/mcp` also works, as an alias)
+- Listed in the official MCP Registry as `io.github.InferIndex/inferindex`.
 - **Read-only, no authentication.** An API key can be passed in the `x-api-key` header.
 - **Limits**: 120 requests per minute per IP on `/mcp`, at most 10 JSON-RPC messages per batch and 64 KB per
   request (otherwise `400` or `413` with JSON-RPC error `-32600`). Over the rate limit: `429` with JSON-RPC error

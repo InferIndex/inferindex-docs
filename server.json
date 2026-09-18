@@ -1,0 +1,10 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.InferIndex/inferindex",
+  "title": "InferIndex",
+  "description": "LLM API prices across 70+ providers: cheapest offer, comparisons, history and cost estimates.",
+  "repository": { "url": "https://github.com/InferIndex/inferindex-docs", "source": "github" },
+  "websiteUrl": "https://api.inferindex.dev",
+  "version": "1.0.0",
+  "remotes": [ { "type": "streamable-http", "url": "https://mcp.inferindex.dev/mcp" } ]
+}
