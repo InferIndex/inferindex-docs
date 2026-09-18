@@ -188,7 +188,8 @@ Full route and parameter reference: [docs/api.md](docs/api.md).
 InferIndex is also available as a remote [MCP](https://modelcontextprotocol.io) server, so an AI assistant can
 look up prices for you:
 
-- **Endpoint**: `https://api.inferindex.dev/mcp` (Streamable HTTP)
+- **Endpoint**: `https://mcp.inferindex.dev/mcp` (Streamable HTTP)
+  (`https://api.inferindex.dev/mcp` also works, as an alias)
 - **Read-only, no authentication.** An API key can be passed in the `x-api-key` header; the same rate limits as the
   API apply.
 
@@ -207,22 +208,22 @@ Every result includes `api_url`, the equivalent API call, so you can check or re
 **Claude Code**
 
 ```bash
-claude mcp add --transport http inferindex https://api.inferindex.dev/mcp
+claude mcp add --transport http inferindex https://mcp.inferindex.dev/mcp
 ```
 
 With an API key, add `--header "x-api-key: YOUR_KEY"`.
 
-**Claude Desktop / claude.ai**: Settings → Connectors → Add custom connector, URL `https://api.inferindex.dev/mcp`.
+**Claude Desktop / claude.ai**: Settings → Connectors → Add custom connector, URL `https://mcp.inferindex.dev/mcp`.
 Older Claude Desktop versions, in `claude_desktop_config.json`:
 
 ```json
-{ "mcpServers": { "inferindex": { "command": "npx", "args": ["-y", "mcp-remote", "https://api.inferindex.dev/mcp"] } } }
+{ "mcpServers": { "inferindex": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.inferindex.dev/mcp"] } } }
 ```
 
 **Cursor**, in `~/.cursor/mcp.json`:
 
 ```json
-{ "mcpServers": { "inferindex": { "url": "https://api.inferindex.dev/mcp" } } }
+{ "mcpServers": { "inferindex": { "url": "https://mcp.inferindex.dev/mcp" } } }
 ```
 
 With an API key, add `"headers": { "x-api-key": "YOUR_KEY" }` next to `"url"`.
