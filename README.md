@@ -240,6 +240,22 @@ In `~/.cursor/mcp.json`:
 
 With an API key, add `"headers": { "x-api-key": "YOUR_KEY" }` next to `"url"`.
 
+**Codex CLI**
+
+```bash
+codex mcp add inferindex --url https://mcp.inferindex.dev/mcp
+```
+
+Or in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.inferindex]
+url = "https://mcp.inferindex.dev/mcp"
+```
+
+With an API key, add `env_http_headers = { "x-api-key" = "INFERINDEX_API_KEY" }` to that table and set the
+`INFERINDEX_API_KEY` environment variable.
+
 ## Contributing
 
 Documentation fixes and example contributions are welcome — open a pull request or an issue. This repository
