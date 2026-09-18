@@ -10,8 +10,10 @@ against the production API on 2026-09-15.
 
 ## Authentication and rate limits
 
-No key is needed. Requests without a key are limited to **60 requests per minute per IP** on `/history` and
-`/resellers` (requests answered from cache don't count).
+No key is needed. Requests without a key are limited to **60 requests per minute per IP** on `/cheapest`,
+`/history` and `/resellers` (requests answered from cache don't count). Over the limit, the API returns **429**.
+Other routes have no limit today, which may change. The MCP server's limits are in the
+[README](../README.md#use-with-ai-assistants-mcp).
 
 You can optionally send an API key in the `x-api-key` header to get **300 requests per minute per key** on
 those routes:
@@ -413,7 +415,7 @@ Here: 1,000 uncached prompt tokens × $0.2088/M + 1,000 cached tokens × $0.0216
 | Note | Meaning |
 |---|---|
 | `tiers_not_detailed` | The source doesn't detail its brackets: the first bracket is used |
-| `beyond_published_tiers` | The request is larger than the last bracket the source publishes |
+| `beyond_published_tiers` | The request is larger than the last bracket the source publishes: the price of the highest bracket reached is used |
 | `cache_price_unknown` | No cache price published: the input price is used for the cached part |
 | `peak_pricing` | The price depends on the time of the call (peak / off-peak): the estimate uses the normal rate |
 | `exceeds_context` | Prompt + output is larger than the offer's context window — the offer is still listed |
