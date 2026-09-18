@@ -95,11 +95,11 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `supports_tools`, `supports_json`, `supports_vision` | Tool calling, JSON output (JSON mode, `response_format`, structured outputs) and image input, **as declared by the source**: `true`/`false` only when the source says so explicitly, `null` otherwise |
 | `uptime_30m`, `uptime_provenance` | (`/cheapest` only) 30-minute availability in percent, **as observed by an aggregator** — never an independent measurement by InferIndex. `uptime_provenance` is `"aggregator"` when `uptime_30m` is set, `null` otherwise |
 | `conditions` | Usage conditions from the provider's official documents (data region, retention, training on prompts…), see [Usage conditions](#usage-conditions) |
-| `checked_at` | Last time the offer was re-checked at its source |
+| `checked_at` | Last time the offer's price was confirmed at its source. For a price that doesn't change, it is refreshed at most every 2 hours, so it can lag by up to 2 hours plus the source's collection interval |
 | `stale` | `true` when the offer hasn't been re-checked for more than 3 × its source's collection interval (6 hours minimum): its price may be out of date. Stale offers are hidden from `/cheapest` (unless `include_stale=true`) and listed last in `/resellers` |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
 | `official_list_price` | The lab's own list price for this model — `{ input_per_1M, output_per_1M, source_url, checked_at }` in USD — or `null` when the lab doesn't publish one. An offer that doesn't specify a region is compared with the lab's cheapest region; an offer for a given region (e.g. variant `eu` or `global`) with that same region |
-| `below_official_list` | `true` when an offer resold by someone other than the lab is clearly below what the lab itself charges, with no discount declared. It's a signal to double-check the offer, not a promotion: the offer is still listed and can still be bought |
+| `below_official_list` | `true` when an offer resold by someone other than the lab (including a closed model sold under the reseller's own name) is clearly below what the lab itself charges, with no discount declared. It's a signal to double-check the offer, not a promotion: the offer is still listed and can still be bought |
 | `served_model`, `requested_model`, `requested_models`, `redirect_note` | Only on offers where the lab has announced that a model id is now served by another model. The offer is listed under the model actually served (`served_model`); `requested_model` is the id to use with that provider (`requested_models` lists every id that leads to this same offer), and `redirect_note` explains the change. Such an offer is compared with the served model, including its list price |
 | `aggregated_price` | `true` when a gateway publishes a single price for several backends it doesn't name (e.g. "cheapest available" or a default backend). The offer is still listed, but is never picked as the cheapest in `/cheapest` (reason code `aggregated_price`). Always `false` as of 2026-09-18 |
 | `backend_unknown` | `true` when a router publishes a price under its own name without saying which provider serves the model. A signal only: the offer is compared normally |
@@ -579,7 +579,8 @@ With `granularity=raw`, each row is a single price snapshot: `captured_at`, `las
 `source`, `provider`, `variant`, `quantization`, prices in the source's currency (`currency`, `input_per_1m`,
 `output_per_1m`, `cache_read_per_1m`) and in USD (`input_usd_per_1M`, `output_usd_per_1M`,
 `cache_read_usd_per_1M`). `source` is the id of the pricing source, or `"aggregator"` for an aggregator that isn't
-identified by name.
+identified by name. `ended_at` is when the price was replaced; `null` means the price is still in force.
+`last_checked_at` may lag by up to 2 hours (see `checked_at` in [Offer fields](#offer-fields)).
 
 ### Prices at a given moment
 
@@ -619,7 +620,7 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 ```
 
 One row per offer (source, provider, quantization, variant): the last price captured at or before `at` that was
-still valid at that moment (`price_since` / `price_until`).
+still valid at that moment (`price_since` / `price_until`; `price_until` is `null` when the price is still in force).
 
 ### Exchange rates
 
