@@ -17,7 +17,7 @@ You can optionally send an API key in the `x-api-key` header to get **300 reques
 those routes:
 
 ```bash
-curl -H "x-api-key: YOUR_KEY" "https://api.inferindex.dev/resellers?model=deepseek-v3.2"
+curl -H "x-api-key: YOUR_KEY" "https://api.inferindex.dev/resellers?model=deepseek/deepseek-v3.2"
 ```
 
 An unknown or revoked key returns **401** — the request is not silently served as anonymous, so remove the
@@ -28,6 +28,12 @@ yet.
 
 Use an explicit model id, as listed by `/models` (for example `deepseek/deepseek-v4-pro-0813`). `/models` and
 `other_matches` only list real models: no "latest" aliases and no service-level variants.
+
+- **Explicit ids** (`org/model`) must exist: an unknown one returns **404** (`No model with id '…'`) with
+  `suggestions`, never a different model.
+- **Short or partial names** (`deepseek-v3`, `gpt`) are resolved to the closest match. When the name doesn't point
+  to exactly one model, the response adds `"ambiguous": true`, and `other_matches` lists the other candidates — on
+  `/cheapest`, `/resellers` and `/history`. Check `model.id` in the response, or send an explicit id.
 
 - **"Latest" aliases** (ids ending in `-latest`) point to whichever version is newest, so they aren't accepted by
   `/cheapest`, `/resellers` or `/history`. They return **404** with a `suggestions` array of explicit ids to use
@@ -49,7 +55,7 @@ Use an explicit model id, as listed by `/models` (for example `deepseek/deepseek
 Errors return JSON with an English `error` message, for example:
 
 ```json
-{ "error": "Missing 'model' parameter, e.g. /cheapest?model=deepseek-v3" }
+{ "error": "Missing 'model' parameter, e.g. /cheapest?model=deepseek/deepseek-v3.2" }
 ```
 
 | Status | When | Example message |
@@ -136,16 +142,16 @@ them. For one line per source, without deduplication, use `/resellers`.
 | `explain` | no | `true` to list every excluded offer with its reasons, see [Explained response](#explained-response) |
 
 ```bash
-curl "https://api.inferindex.dev/cheapest?model=deepseek-v3"
+curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
 
 ```json
 {
-  "query": "deepseek-v3",
+  "query": "deepseek/deepseek-v3.2",
   "model": { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek: DeepSeek V3.2" },
-  "other_matches": ["deepseek/deepseek-v3.2-exp", "deepseek/deepseek-v3.1-terminus"],
+  "other_matches": ["deepseek/deepseek-v3.2-exp", "deepseek/deepseek-v3.2-exp-thinking"],
   "sort": "blended",
   "cheapest": { "provider": "Nous Portal", "via": "nous", "blended_per_1M": 0.234, "…": "same shape as offers" },
   "offers": [
@@ -204,7 +210,7 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 - `promo`, `promo_source`, `confidence`, `promo_since`, `promo_ends_at` and `price_before_promo` describe a
   detected promotion; `promo` is `false` (and the rest `null`) on most offers.
 - `hidden_tiers` counts offers excluded by the default tier filter, by tier name.
-- `stale_hidden` counts stale offers left out. For example, `/cheapest?model=glm-5.2` returned
+- `stale_hidden` counts stale offers left out. For example, `/cheapest?model=z-ai/glm-5.2` returned
   `"stale_hidden": 1` on 2026-09-15; with `include_stale=true` that offer came back with `"stale": true` and a
   `checked_at` from the previous day.
 
@@ -225,7 +231,7 @@ Every `/cheapest` response includes an `explanation` block saying how the result
 With `explain=true`, the response also lists each excluded offer in `excluded_offers`:
 
 ```bash
-curl "https://api.inferindex.dev/cheapest?model=deepseek-v3.2&min_context=128000&explain=true"
+curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2&min_context=128000&explain=true"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
@@ -350,7 +356,7 @@ today; `no_waitlist=true&strict=true` therefore excludes almost everything for n
 Add `sort=estimated_cost` to rank offers by estimated cost per request instead of list price.
 
 ```bash
-curl "https://api.inferindex.dev/cheapest?model=deepseek-v3.2&prompt_tokens=2000&output_tokens=500&cached_ratio=0.5&requests_per_day=1000&sort=estimated_cost"
+curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2&prompt_tokens=2000&output_tokens=500&cached_ratio=0.5&requests_per_day=1000&sort=estimated_cost"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
@@ -418,7 +424,7 @@ Paginated beyond 100 offers.
 | `prompt_tokens`, `output_tokens`, `cached_ratio`, `requests_per_day` | no | Cost estimate, same as `/cheapest` |
 
 ```bash
-curl "https://api.inferindex.dev/resellers?model=deepseek-v3.2&limit=2"
+curl "https://api.inferindex.dev/resellers?model=deepseek/deepseek-v3.2&limit=2"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
@@ -505,7 +511,7 @@ be before `to`. These cases, and unreadable dates, return **400** with an `error
 ### Over a period
 
 ```bash
-curl "https://api.inferindex.dev/history?model=deepseek-v3.2&from=2026-09-14&to=2026-09-15&granularity=day&limit=1"
+curl "https://api.inferindex.dev/history?model=deepseek/deepseek-v3.2&from=2026-09-14&to=2026-09-15&granularity=day&limit=1"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
@@ -553,7 +559,7 @@ identified by name.
 ### Prices at a given moment
 
 ```bash
-curl "https://api.inferindex.dev/history?model=deepseek-v3.2&at=2026-09-15"
+curl "https://api.inferindex.dev/history?model=deepseek/deepseek-v3.2&at=2026-09-15"
 ```
 
 _Example response as of 2026-09-15 — prices, providers and statuses change._
@@ -604,7 +610,7 @@ For models with a lab that publishes list prices (for example OpenAI, Anthropic 
 one interval:
 
 ```bash
-curl "https://api.inferindex.dev/history?model=gpt-4o&days=2&limit=1"
+curl "https://api.inferindex.dev/history?model=openai/gpt-4o&days=2&limit=1"
 ```
 
 _Example response as of 2026-09-18 — prices, providers and statuses change._
