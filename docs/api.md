@@ -121,7 +121,7 @@ them. For one line per source, without deduplication, use `/resellers`.
 
 | Parameter | Required | Meaning |
 |---|---|---|
-| `model` | yes | Model to search, e.g. `deepseek-v3` (partial match; see `other_matches` in the response) |
+| `model` | yes | Model id, e.g. `deepseek/deepseek-v3.2`. A partial name also works but may be `ambiguous`, see [Model identifiers](#model-identifiers) |
 | `sort` | no | `blended` (default), `input`, `output` or `estimated_cost` (needs usage parameters) |
 | `min_context` | no | Minimum context window, in tokens |
 | `min_uptime` | no | Minimum 30-minute uptime, percent (aggregator-observed, see `uptime_provenance`) |
