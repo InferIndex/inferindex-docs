@@ -50,8 +50,8 @@ For a closed model, every reseller counts, not only the lab.
 We then keep **one price per provider** (its lowest), and the model's reference price is the **median of the three
 cheapest providers**. **A model with fewer than 3 providers has no reference price.**
 
-Prices in another currency are converted to USD at the latest ECB reference rate published on or before the
-measured date (for a Monday 00:00 UTC, in practice the previous Friday's rate).
+Prices in another currency are converted to USD at the latest ECB reference rate published before the measured
+instant (dated no later than the day before; for a Monday 00:00 UTC publication, the previous Friday's rate).
 
 In the official series, a model's reference is its lab list price (see *Two series*): undiscounted, standard
 service level, cheapest region. Market-series exclusions and the 3-provider minimum don't apply. Models under review
