@@ -74,7 +74,8 @@ Rely on the HTTP status and on field names; message wording may still be refined
 ## `GET /`
 
 Returns the API name, `version` (currently `"0.6.0"`), a short English description of each public endpoint,
-and `filters`: the accepted parameters of `/cheapest`, `/resellers` and `/history`.
+`filters`: the accepted parameters of `/cheapest`, `/resellers` and `/history`, and `signals`: a short official
+description of each offer signal (`backend_unknown`, `aggregated_price`, `points_based`, `below_official_list`).
 
 ## Offer fields
 
@@ -102,6 +103,7 @@ and `filters`: the accepted parameters of `/cheapest`, `/resellers` and `/histor
 | `served_model`, `requested_model`, `requested_models`, `redirect_note` | Only on offers where the lab has announced that a model id is now served by another model. The offer is listed under the model actually served (`served_model`); `requested_model` is the id to use with that provider (`requested_models` lists every id that leads to this same offer), and `redirect_note` explains the change. Such an offer is compared with the served model, including its list price |
 | `aggregated_price` | `true` when a gateway publishes a single price for several backends it doesn't name (e.g. "cheapest available" or a default backend). The offer is still listed, but is never picked as the cheapest in `/cheapest` (reason code `aggregated_price`). Always `false` as of 2026-09-18 |
 | `backend_unknown` | `true` when a router publishes a price under its own name without saying which provider serves the model. A signal only: the offer is compared normally |
+| `points_based` | `true` when the source publishes its price in points or credits, converted to USD: what you actually pay depends on how you buy those points. The offer is still listed in `/resellers`, but is never picked as the cheapest (reason code `points_based`) |
 
 `inferred` stays rare in responses by design: when the same provider is seen through several sources and one of
 them publishes the precision, the published value wins.
@@ -277,6 +279,7 @@ more than `considered − eligible`.
 | `stale` | Not re-checked recently, see `stale` in [Offer fields](#offer-fields) |
 | `aggregated_price` | Single price for unnamed backends, see [Offer fields](#offer-fields) |
 | `promo_expired` | The promotion's published end date has passed |
+| `points_based` | Price converted from points or credits, see [Offer fields](#offer-fields) |
 | `tier_hidden` | `flex` or `batch` tier, hidden by default |
 | `duplicate` | Same offer kept through another source (cheaper, or direct at equal price) |
 | `no_fx_rate` | (count only) no exchange rate for the source's currency |
@@ -479,7 +482,9 @@ aggregator that isn't identified by name, or otherwise the id of the aggregator/
 `"nous"`) — the same model/provider pair can appear more than once via different
 routes, often at different prices. Stale offers (`"stale": true`) are not hidden here but always listed after
 every fresh offer, whatever the `sort`. `cheapest` is always the single cheapest offer across *all* pages, not just
-the current one. Keep paging with `cursor` while `next_cursor` is non-null.
+the current one, and follows the same rules as `/cheapest`: it is never a stale offer, an expired promotion, a
+price converted from points, or a gateway's aggregated price. Keep paging with `cursor` while `next_cursor` is
+non-null.
 
 When `region` or `no_training` is set, the response adds `filters_unknown` and `excluded` (number of offers
 excluded, per reason code — same codes as [Explained response](#explained-response)).
