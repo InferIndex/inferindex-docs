@@ -97,6 +97,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `conditions` | Usage conditions from the provider's official documents (data region, retention, training on prompts…), see [Usage conditions](#usage-conditions) |
 | `checked_at` | Last time the offer's price was confirmed at its source. For a price that doesn't change, it is refreshed at most every 2 hours, so it can lag by up to 2 hours plus the source's collection interval |
 | `stale` | `true` when the offer hasn't been re-checked for more than 3 × its source's collection interval (6 hours minimum): its price may be out of date. Stale offers are hidden from `/cheapest` (unless `include_stale=true`) and listed last in `/resellers` |
+| `via_name` | Readable name of the aggregator the offer goes through, when it is disclosed (e.g. `"Eden AI"` for `via: "edenai"`); `null` for direct offers and for aggregators that aren't identified by name |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
 | `official_list_price` | The lab's own list price for this model — `{ input_per_1M, output_per_1M, source_url, checked_at }` in USD — or `null` when the lab doesn't publish one. An offer that doesn't specify a region is compared with the lab's cheapest region; an offer for a given region (e.g. variant `eu` or `global`) with that same region |
 | `below_official_list` | `true` when an offer resold by someone other than the lab (including a closed model sold under the reseller's own name) is clearly below what the lab itself charges, with no discount declared. It's a signal to double-check the offer, not a promotion: the offer is still listed and can still be bought |
@@ -293,6 +294,7 @@ more than `considered − eligible`.
 | `training_not_excluded` / `training_unknown_strict` | Prompts may be used for training / unknown, with `strict=true` |
 | `signup_restricted` / `signup_unknown_strict` | Signup isn't open to everyone / unknown, with `strict=true` |
 | `quantization_inferred_strict` | Quantization inferred rather than declared, with `strict=true` |
+| `unpublishable_provider` | Offer from a provider that InferIndex does not list publicly |
 
 ## Usage conditions
 
@@ -526,6 +528,7 @@ Price history for a tracked model, paginated by cursor. Two ways to ask:
 | `from`, `to` | no | Period instead of `days`: `YYYY-MM-DD` or ISO 8601 date-time. A date alone for `to` means the end of that day (UTC); `to` defaults to now. Same maximum length as `days` — a longer period is shortened from `from`, with `days_capped` |
 | `at` | no | `YYYY-MM-DD` or ISO 8601 date-time: prices in force at that moment (a date alone means the end of that day, UTC; a future moment means now) |
 | `granularity` | no | `raw` (default): one row per price change. `day` / `week`: one point per period and per offer. Not used with `at` |
+| `series` | no | `cheapest`: the cheapest offer of each day instead of the full history, see [Cheapest offer of each day](#cheapest-offer-of-each-day). Only with `days` or `from`/`to` |
 | `provider` | no | Filter to one provider name (case-insensitive) |
 | `limit` | no | Page size, default 1000 |
 | `cursor` | no | Opaque cursor from a previous response's `next_cursor` |
@@ -621,6 +624,52 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 
 One row per offer (source, provider, quantization, variant): the last price captured at or before `at` that was
 still valid at that moment (`price_since` / `price_until`; `price_until` is `null` when the price is still in force).
+
+### Cheapest offer of each day
+
+With `series=cheapest`, `/history` returns one point per day at 00:00 UTC: the offer `/cheapest` would have
+selected at that instant with its default filters. Use `days` or `from`/`to` (not `at`); the period is limited to
+**90 days** — a longer request is shortened and flagged with `days_capped: true` and `requested_days`.
+
+```bash
+curl "https://api.inferindex.dev/history?model=deepseek/deepseek-v3.2&series=cheapest&days=3"
+```
+
+_Example response as of 2026-09-18 — prices, providers and statuses change._
+
+```json
+{
+  "model": { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek: DeepSeek V3.2" },
+  "series": "cheapest",
+  "from": "2026-09-15T23:16:55.521Z",
+  "to": "2026-09-18T23:16:55.521Z",
+  "tracking_since": "2026-09-14T18:02:05Z",
+  "days": 3,
+  "count": 3,
+  "note": "…",
+  "cheapest_by_day": [
+    {
+      "date": "2026-09-16",
+      "at": "2026-09-16T00:00:00.000Z",
+      "cheapest": {
+        "provider": "GMICloud",
+        "via": "aggregator",
+        "variant": null,
+        "quantization": "fp8",
+        "input_per_1M": 0.2088,
+        "output_per_1M": 0.3096,
+        "blended_per_1M": 0.234,
+        "promo": true
+      },
+      "providers": 41
+    }
+  ]
+}
+```
+
+Prices are in USD at the latest ECB rate published before each instant. `cheapest` is `null` on a day when no offer
+was eligible; `providers` is the number of providers considered that day. Any other `series` value, or
+`series=cheapest` with `at`, returns **400**.
 
 ### Exchange rates
 
