@@ -26,7 +26,7 @@ This page describes exactly how it is computed, so that every published value ca
    - Only the standard service level counts.
    - When a lab publishes prices for several regions, the cheapest region is used.
 
-Both series start on 2026-09-14 and use the same families and the same minimums. They answer different
+Both series start on 2026-09-14 and use the same families and the same minimum of 3 models per family. They answer different
 questions — "what does the market charge?" and "what do the labs list?" — and are never combined.
 
 ## Reference price of a model (market series)
@@ -50,9 +50,12 @@ For a closed model, every reseller counts, not only the lab.
 We then keep **one price per provider** (its lowest), and the model's reference price is the **median of the three
 cheapest providers**. **A model with fewer than 3 providers has no reference price.**
 
-Prices in another currency are converted to USD at the ECB rate of the day of calculation.
+Prices in another currency are converted to USD at the latest ECB reference rate published on or before the
+measured date (for a Monday 00:00 UTC, in practice the previous Friday's rate).
 
-In the official series, a model's reference is its lab list price, under the rules above.
+In the official series, a model's reference is its lab list price (see *Two series*): undiscounted, standard
+service level, cheapest region. Market-series exclusions and the 3-provider minimum don't apply. Models under review
+are excluded in both series.
 
 ## Families
 
@@ -65,8 +68,8 @@ Each model is placed in one family by a written rule, applied in this order:
    - **Compact closed** (`compact_closed`): the name carries a compact line of the lab (mini, nano, flash, lite,
      haiku, luna, micro);
    - **Frontier closed** (`frontier_closed`): all other closed models.
-4. **Open-weight models**, by the total parameter count published with the model's weights on Hugging Face (recorded,
-   dated and sourced by us):
+4. **Open-weight models**, by the total parameter count shown on the model's Hugging Face page (recorded, dated
+   and sourced by us):
    - **Large** (`open_large`): 200 billion parameters or more;
    - **Medium** (`open_medium`): 40 to 200 billion;
    - **Small** (`open_small`): under 40 billion.

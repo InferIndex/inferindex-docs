@@ -28,7 +28,7 @@ et vérifiée.
    - Seul le niveau de service standard est retenu.
    - Quand un lab publie des prix pour plusieurs régions, on prend la moins chère.
 
-Les deux séries démarrent le 14/09/2026, avec les mêmes familles et les mêmes minimums. Elles répondent à deux
+Les deux séries démarrent le 14/09/2026, avec les mêmes familles et le même minimum de 3 modèles par famille. Elles répondent à deux
 questions différentes, « que fait payer le marché ? » et « quels prix affichent les labs ? », et ne sont jamais
 combinées.
 
@@ -53,9 +53,12 @@ Pour un modèle fermé, tous les revendeurs comptent, pas seulement le lab.
 On garde ensuite **un seul prix par fournisseur** (son plus bas), et le prix de référence du modèle est la **médiane
 des trois fournisseurs les moins chers**. **Un modèle qui a moins de 3 fournisseurs n'a pas de prix de référence.**
 
-Les prix en devise étrangère sont convertis en dollars au taux de la BCE du jour du calcul.
+Les prix en devise étrangère sont convertis en dollars au dernier taux de référence de la BCE publié au plus tard le
+jour mesuré (pour un lundi 00:00 UTC, en pratique celui du vendredi précédent).
 
-Dans la série officielle, la référence d'un modèle est son prix de liste chez le lab, selon les règles ci-dessus.
+Dans la série officielle, la référence d'un modèle est son prix de liste chez le lab (voir *Deux séries*) : hors
+remise, niveau standard, région la moins chère. Les exclusions de la série de marché et le minimum de 3 fournisseurs
+ne s'appliquent pas. Les modèles en cours d'examen sont exclus dans les deux séries.
 
 ## Familles
 
@@ -68,7 +71,7 @@ Chaque modèle est placé dans une famille par une règle écrite, appliquée da
    - **Fermés compacts** (`compact_closed`) : le nom porte une gamme compacte du lab (mini, nano, flash, lite,
      haiku, luna, micro) ;
    - **Fermés frontier** (`frontier_closed`) : tous les autres modèles fermés.
-4. **Modèles à poids ouverts**, selon le nombre total de paramètres publié avec leurs poids sur Hugging Face (relevé,
+4. **Modèles à poids ouverts**, selon le nombre total de paramètres affiché sur la page Hugging Face du modèle (relevé,
    daté et sourcé par nous) :
    - **Grands** (`open_large`) : 200 milliards de paramètres ou plus ;
    - **Moyens** (`open_medium`) : de 40 à 200 milliards ;
