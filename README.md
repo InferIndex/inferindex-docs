@@ -75,10 +75,11 @@ that history — client requests never trigger a live call to a provider.
 - **Cache**: successful responses carry `Cache-Control: public, max-age=300` (5 minutes) (except `/health/ready`, never cached). On the custom domain, responses are additionally held in Cloudflare's
   edge cache for the same 5 minutes.
 - **Collection frequency**: most sources are polled hourly; a few (exchange rates, model catalog) once a day.
-- **Rate limit**: 60 requests per minute per IP on `/history` and `/resellers` (the endpoints that can return
-  large paginated results, cache hits excluded); no limit is currently enforced on the other read endpoints, but
-  that may change. An optional API key (`x-api-key` header) raises this to 300 requests per minute; free keys
-  will be offered, self-service sign-up isn't available yet. An invalid key returns 401.
+- **Rate limits**: 60 requests per minute per IP on `/cheapest`, `/history` and `/resellers`, counting only
+  requests not answered from cache. An optional API key (`x-api-key` header) raises this to 300 requests per
+  minute per key; free keys will be offered, self-service sign-up isn't available yet. An invalid key returns
+  401. Over the limit, requests get `429`. The MCP server has its own limits, see
+  [Use with AI assistants](#use-with-ai-assistants-mcp).
 - **Cost estimate**: add `prompt_tokens`, `output_tokens`, `cached_ratio` and `requests_per_day` to `/cheapest`
   or `/resellers` to get an estimated cost per request and per month for each offer, and
   `sort=estimated_cost` to rank by it. See [docs/api.md](docs/api.md#cost-estimate).
@@ -191,8 +192,11 @@ look up prices for you:
 
 - **Endpoint**: `https://mcp.inferindex.dev/mcp` (Streamable HTTP)
   (`https://api.inferindex.dev/mcp` also works, as an alias)
-- **Read-only, no authentication.** An API key can be passed in the `x-api-key` header; the same rate limits as the
-  API apply.
+- **Read-only, no authentication.** An API key can be passed in the `x-api-key` header.
+- **Limits**: 120 requests per minute per IP on `/mcp`, at most 10 JSON-RPC messages per batch and 64 KB per
+  request (otherwise `400` or `413` with JSON-RPC error `-32600`). Over the rate limit: `429` with JSON-RPC error
+  `-32000`. Each tool call also counts toward the limit of the API route it uses (`/cheapest`, `/resellers`,
+  `/history`).
 
 | Tool | What it does |
 |---|---|
