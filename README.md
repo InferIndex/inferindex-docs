@@ -110,6 +110,7 @@ not as a guarantee of what you will be billed:
 | `GET /models?search=deepseek` | Search tracked models |
 | `GET /health/live` | Liveness only: the service is up, no database access |
 | `GET /health/ready` | Readiness: data freshness and scheduler health, see below |
+| `/mcp` | MCP server for AI assistants, see [Use with AI assistants](#use-with-ai-assistants-mcp) |
 
 ### `/cheapest` filters
 
@@ -181,6 +182,51 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 uptime-monitor target if you depend on this API.
 
 Full route and parameter reference: [docs/api.md](docs/api.md).
+
+## Use with AI assistants (MCP)
+
+InferIndex is also available as a remote [MCP](https://modelcontextprotocol.io) server, so an AI assistant can
+look up prices for you:
+
+- **Endpoint**: `https://mcp.inferindex.dev/mcp` (Streamable HTTP)
+  (`https://api.inferindex.dev/mcp` also works, as an alias)
+- **Read-only, no authentication.** An API key can be passed in the `x-api-key` header; the same rate limits as the
+  API apply.
+
+| Tool | What it does |
+|---|---|
+| `search_models(query)` | Find the exact id of a model |
+| `cheapest(model, …)` | Cheapest offers, with the same filters as `/cheapest` (`min_context`, `tools`, `json`, `vision`, `region`, `no_training`, `no_waitlist`, `strict`, `include_tiers`), optional usage (`prompt_tokens`, `output_tokens`, `cached_ratio`, `requests_per_day`) and `limit` |
+| `compare_providers(model, sort, limit, …)` | Every offer, one line per provider, with usage conditions and reliability |
+| `price_history(model, days \| from + to \| at, granularity, provider, limit)` | Offer price history, plus the lab's official prices |
+| `estimate_cost(model, prompt_tokens, output_tokens, cached_ratio, requests_per_day)` | Estimated cost per request and per month, sorted |
+
+Every result includes `api_url`, the equivalent API call, so you can check or reuse it.
+
+### Setup
+
+**Claude Code**
+
+```bash
+claude mcp add --transport http inferindex https://mcp.inferindex.dev/mcp
+```
+
+With an API key, add `--header "x-api-key: YOUR_KEY"`.
+
+**Claude Desktop / claude.ai**: Settings → Connectors → Add custom connector, URL `https://mcp.inferindex.dev/mcp`.
+Older Claude Desktop versions, in `claude_desktop_config.json`:
+
+```json
+{ "mcpServers": { "inferindex": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.inferindex.dev/mcp"] } } }
+```
+
+**Cursor**, in `~/.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "inferindex": { "url": "https://mcp.inferindex.dev/mcp" } } }
+```
+
+With an API key, add `"headers": { "x-api-key": "YOUR_KEY" }` next to `"url"`.
 
 ## Contributing
 
