@@ -1,0 +1,19 @@
+Copyright (c) 2026 InferIndex
+
+The documentation in this repository (README.md, docs/ and other prose files)
+is licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0).
+
+You are free to share and adapt it for any purpose, including commercially,
+as long as you give appropriate credit ("InferIndex", with a link to
+https://github.com/InferIndex/inferindex-docs), provide a link to the license,
+and indicate if changes were made.
+
+Full legal text: https://creativecommons.org/licenses/by/4.0/legalcode
+Summary: https://creativecommons.org/licenses/by/4.0/
+
+Code (examples, code snippets and the client SDK) is licensed separately under
+the MIT License: see LICENSE.
+
+This license covers this repository's content only. It grants no rights to the
+InferIndex backend, its data, or the "InferIndex" name.
