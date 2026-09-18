@@ -68,8 +68,8 @@ Chaque modèle est placé dans une famille par une règle écrite, appliquée da
    - **Fermés compacts** (`compact_closed`) : le nom porte une gamme compacte du lab (mini, nano, flash, lite,
      haiku, luna, micro) ;
    - **Fermés frontier** (`frontier_closed`) : tous les autres modèles fermés.
-4. **Modèles à poids ouverts**, selon le nombre total de paramètres publié avec leurs poids (relevé, daté et sourcé
-   par nous) :
+4. **Modèles à poids ouverts**, selon le nombre total de paramètres publié avec leurs poids sur Hugging Face (relevé,
+   daté et sourcé par nous) :
    - **Grands** (`open_large`) : 200 milliards de paramètres ou plus ;
    - **Moyens** (`open_medium`) : de 40 à 200 milliards ;
    - **Petits** (`open_small`) : moins de 40 milliards.

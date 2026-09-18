@@ -65,8 +65,8 @@ Each model is placed in one family by a written rule, applied in this order:
    - **Compact closed** (`compact_closed`): the name carries a compact line of the lab (mini, nano, flash, lite,
      haiku, luna, micro);
    - **Frontier closed** (`frontier_closed`): all other closed models.
-4. **Open-weight models**, by the total parameter count published with the model's weights (recorded, dated and
-   sourced by us):
+4. **Open-weight models**, by the total parameter count published with the model's weights on Hugging Face (recorded,
+   dated and sourced by us):
    - **Large** (`open_large`): 200 billion parameters or more;
    - **Medium** (`open_medium`): 40 to 200 billion;
    - **Small** (`open_small`): under 40 billion.
