@@ -105,6 +105,11 @@ The method is fixed before the first publication. Any later change gets a new ve
 reason, in the history below. Each publication states the `method_version` it was computed with. **Published values
 are never silently recomputed.**
 
+**Corrections.** A published week is never silently recomputed. If a data error is fixed after publication, the week
+is recomputed through an explicit correction with a mandatory reason: every family whose value or composition changes
+keeps its previous value, and `GET /index` lists the corrections for that date (previous value, new value, reason,
+date of the correction).
+
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |

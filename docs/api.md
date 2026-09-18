@@ -706,7 +706,8 @@ Response shape (values in `<…>` are placeholders, not published data):
     { "family": "frontier_closed", "value": "<number>", "models": "<n>", "model_ids": ["…"] },
     { "family": "compact_closed", "value": null, "models": 2, "model_ids": ["…", "…"] }
   ],
-  "available_dates": ["<Monday>", "…"]
+  "available_dates": ["<Monday>", "…"],
+  "corrections": []
 }
 ```
 
@@ -715,7 +716,11 @@ Response shape (values in `<…>` are placeholders, not published data):
   counted, so the value can be recomputed from their reference prices.
 - `method_version` is the methodology version used for that publication.
 - `available_dates` lists the published Mondays of the series (up to 52, most recent first).
-- Values are stored at publication and served as published; they are never recomputed.
+- Values are stored at publication and served as published. A published week is only recomputed through an explicit
+  correction, listed in `corrections` for the week and series served (empty when there is none). Each entry:
+  `{ "family", "previous_value", "value", "previous_models", "models", "reason", "corrected_at" }`, where
+  `previous_*` are the values before the correction and `value` / `models` those after it (also shown in
+  `families`).
 
 Before the first publication, the route returns **404**:
 

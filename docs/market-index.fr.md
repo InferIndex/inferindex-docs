@@ -109,6 +109,11 @@ La méthode est figée avant la première publication. Toute modification ultér
 avec sa date et sa raison, dans l'historique ci-dessous. Chaque publication indique la `method_version` utilisée.
 **Les valeurs déjà publiées ne sont jamais recalculées en silence.**
 
+**Corrections.** Une semaine publiée n'est jamais recalculée en silence. Si une erreur de données est corrigée après
+publication, la semaine est recalculée par une correction explicite, avec un motif obligatoire : chaque famille dont la
+valeur ou la composition change garde sa valeur précédente, et `GET /index` liste les corrections de cette date (valeur
+précédente, nouvelle valeur, motif, date de la correction).
+
 | Version | Date | Changement |
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
