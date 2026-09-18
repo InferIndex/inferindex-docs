@@ -211,6 +211,8 @@ Every result includes `api_url`, the equivalent API call, so you can check or re
 
 ### Setup
 
+For Cline and other agents that install servers themselves, see [llms-install.md](llms-install.md).
+
 **Claude Code**
 
 ```bash
@@ -226,7 +228,11 @@ Older Claude Desktop versions, in `claude_desktop_config.json`:
 { "mcpServers": { "inferindex": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.inferindex.dev/mcp"] } } }
 ```
 
-**Cursor**, in `~/.cursor/mcp.json`:
+**Cursor**: one click, or add it by hand.
+
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=inferindex&config=eyJ1cmwiOiJodHRwczovL21jcC5pbmZlcmluZGV4LmRldi9tY3AifQ%3D%3D)
+
+In `~/.cursor/mcp.json`:
 
 ```json
 { "mcpServers": { "inferindex": { "url": "https://mcp.inferindex.dev/mcp" } } }
