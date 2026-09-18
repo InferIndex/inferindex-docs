@@ -289,15 +289,16 @@ Each offer of `/cheapest` and `/resellers` carries `conditions`, read from the p
 (legal pages, documentation, trust centers — never third-party sites):
 
 - `conditions.provider`: the provider's conditions;
-- `conditions.via`: the same conditions for the aggregator the offer goes through, or `null` for direct offers
-  and for aggregators that aren't identified by name.
+- `conditions.via`: the same conditions for the aggregator the offer goes through, or `null` for direct offers.
+  For an aggregator that isn't identified by name, only the codes are given (`value` repeats the code,
+  `source_url` is `null`).
 
 | Condition | Codes |
 |---|---|
-| `regions` | Where requests are **processed**, e.g. `EU`, `US`, `global` (processing may leave a region) |
+| `regions` | Where requests are **processed**, e.g. `EU`, `US`, `UK`, `CH`, `global` (processing may leave a region). Several regions are comma-separated, e.g. `SG,ID,US` |
 | `data_hosting_region` | Where data is **hosted or stored**, e.g. `EU`, `US`, `SG`, `global` — informational, not used by `region=` |
 | `data_retention` | `none`, `limited`, `stored` |
-| `training_on_prompts` | `no`, `yes`, `opt_out`, `conditional` |
+| `training_on_prompts` | `no`, `yes`, `opt_out`, `opt_in`, `conditional` |
 | `rate_limits` | `published`, `none_published` |
 | `sla` | `published`, `enterprise_only`, `none` |
 | `tools`, `json`, `vision` | `yes`, `no` — as declared in the source's data |
@@ -318,13 +319,24 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 }
 ```
 
+**Deployment region of an offer.** When the source publishes where a given offer is deployed (for example a
+cloud region such as `eu-west-1`, `francecentral` or `fr-par`), `regions` gives that region for this offer
+rather than the provider's general statement, and `region=` uses it. London counts as `UK` and Zurich as `CH`,
+never `EU`; a vague or unknown region name (`europe`, `global`) gives no region. Example, as of 2026-09-18:
+
+```json
+{ "regions": { "value": "Deployment region 'eu' published by the source for this offer", "code": "EU", "source_url": null, "checked_at": "…" } }
+```
+
 `value` is the provider's wording, `code` the normalized value, `source_url` the page it was read from and
 `checked_at` the last check that the statement is still on that page. A condition that isn't published, or is
 ambiguous or contradictory, is `unknown` — never an implicit yes. Conditions change: check `source_url` before
 relying on one.
 
 **Filters** (`/cheapest` and `/resellers`): `region=` (`eu, us, cn, uk, ch, sg, id, my, vn, kr, jp, in, ca, au`) keeps offers processed in that region, `no_training=true`
-offers that don't train on prompts. Provider **and** aggregator must both qualify. Unknown values follow the
+offers that don't train on prompts. Provider **and** aggregator must both qualify: an offer resold by an
+aggregator with no guaranteed region (`global`) is unknown for `region=`, and dropped with `strict=true`, even when
+the backend itself is in that region. Unknown values follow the
 same rule as other filters (kept and flagged in `unverified` / `filters_unknown`, excluded with `strict=true`).
 
 ## Access conditions
