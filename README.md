@@ -110,6 +110,7 @@ not as a guarantee of what you will be billed:
 | `GET /resellers?model=deepseek/deepseek-v3.2` | Current prices across every reseller (direct and via aggregators), one line per source, paginated beyond 100 offers |
 | `GET /history?model=deepseek/deepseek-v3.2&days=30&granularity=day` | Price history, paginated by cursor |
 | `GET /models?search=deepseek` | Search tracked models |
+| `GET /index?series=market` | Weekly market index, every Monday from 2026-10-05 — see the [methodology](docs/market-index.md) |
 | `GET /health/live` | Liveness only: the service is up, no database access |
 | `GET /health/ready` | Readiness: data freshness and scheduler health, see below |
 | `/mcp` | MCP server for AI assistants, see [Use with AI assistants](#use-with-ai-assistants-mcp) |

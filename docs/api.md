@@ -678,6 +678,56 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 404 if the model resolves but has no history at all (as opposed to an empty page from pagination, which returns
 200 with no rows).
 
+## `GET /index`
+
+The weekly InferIndex market index: the median price of one million tokens (USD, blended 3:1) per model family,
+published every Monday at 00:00 UTC from **2026-10-05**. How it is computed:
+[market index methodology](market-index.md).
+
+| Parameter | Required | Meaning |
+|---|---|---|
+| `series` | no | `market` (default): from the offers we collect. `official`: from the labs' list prices we collect |
+| `at` | no | `YYYY-MM-DD`: the latest publication on or before that date. Default: the latest publication |
+
+```bash
+curl "https://api.inferindex.dev/index?series=market"
+```
+
+Response shape (values in `<…>` are placeholders, not published data):
+
+```json
+{
+  "index": "InferIndex market index",
+  "series": "market",
+  "published_at": "<Monday>T00:00:00.000Z",
+  "method_version": "1.0",
+  "unit": "USD per 1M tokens, blended 3:1 (input:output)",
+  "families": [
+    { "family": "frontier_closed", "value": "<number>", "models": "<n>", "model_ids": ["…"] },
+    { "family": "compact_closed", "value": null, "models": 2, "model_ids": ["…", "…"] }
+  ],
+  "available_dates": ["<Monday>", "…"]
+}
+```
+
+- `families` lists `frontier_closed`, `compact_closed`, `code`, `open_large`, `open_medium` and `open_small`, in that
+  order. `value` is `null` when the family had fewer than 3 models that week; `models` and `model_ids` give the models
+  counted, so the value can be recomputed from their reference prices.
+- `method_version` is the methodology version used for that publication.
+- `available_dates` lists the published Mondays of the series (up to 52, most recent first).
+- Values are stored at publication and served as published; they are never recomputed.
+
+Before the first publication, the route returns **404**:
+
+```json
+{
+  "error": "The InferIndex market index is published every Monday at 00:00 UTC, starting 2026-10-05",
+  "first_publication": "2026-10-05T00:00:00.000Z"
+}
+```
+
+An unknown `series` or a malformed `at` returns **400**.
+
 ## `GET /models`
 
 Search tracked models by name or id fragment.
