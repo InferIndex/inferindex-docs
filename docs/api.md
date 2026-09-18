@@ -184,6 +184,7 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
       "confidence": null,
       "promo_since": null,
       "promo_ends_at": null,
+      "promo_expired": false,
       "price_before_promo": null,
       "price_since": "2026-09-14T18:02:11.965Z",
       "checked_at": "2026-09-15T04:40:42.431Z",
@@ -208,7 +209,11 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
   `unverified` array (e.g. `["min_uptime"]`). `filters_unknown` counts those offers per filter, e.g.
   `{ "region": 41, "no_training": 22 }`. With `strict=true` they are excluded; `strict` echoes the mode used.
 - `promo`, `promo_source`, `confidence`, `promo_since`, `promo_ends_at` and `price_before_promo` describe a
-  detected promotion; `promo` is `false` (and the rest `null`) on most offers.
+  detected promotion; `promo` is `false` (and the rest `null`) on most offers. `promo_ends_at` is always an ISO
+  date-time (e.g. `2026-09-18T23:59:59Z`): when the source publishes only a date, the promotion runs until
+  23:59:59 UTC that day.
+- `promo_expired` is `true` when the promotion's published end has passed: the discounted price is then no
+  longer presented as the price you pay (reason code `promo_expired` in the explanation).
 - `hidden_tiers` counts offers excluded by the default tier filter, by tier name.
 - `stale_hidden` counts stale offers left out. For example, `/cheapest?model=z-ai/glm-5.2` returned
   `"stale_hidden": 1` on 2026-09-15; with `include_stale=true` that offer came back with `"stale": true` and a
@@ -269,6 +274,7 @@ more than `considered − eligible`.
 |---|---|
 | `stale` | Not re-checked recently, see `stale` in [Offer fields](#offer-fields) |
 | `aggregated_price` | Single price for unnamed backends, see [Offer fields](#offer-fields) |
+| `promo_expired` | The promotion's published end date has passed |
 | `tier_hidden` | `flex` or `batch` tier, hidden by default |
 | `duplicate` | Same offer kept through another source (cheaper, or direct at equal price) |
 | `no_fx_rate` | (count only) no exchange rate for the source's currency |
