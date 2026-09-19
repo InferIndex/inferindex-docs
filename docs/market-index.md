@@ -64,7 +64,10 @@ Each model is placed in one family by a written rule, applied in this order:
 1. **Special use** (moderation, embeddings, reranking, speech, OCR): outside the index.
 2. **Code** (`code`): the model's name designates a code model (coder, codestral, devstral, codex, "-code"), open or
    closed.
-3. **Closed models** — no published weights (for example Claude, GPT, Gemini, Grok, Qwen Max and Plus):
+3. **Closed models** — models whose weights the lab does not publish, from a written list (for example Claude, GPT,
+   Gemini, Grok, Qwen Max and Plus, Amazon Nova, Mistral Medium 3). Each entry is backed by the model's official page
+   (the model is served through an API) and by the model's absence from the lab's official Hugging Face
+   organization. A model whose status is uncertain stays unclassified:
    - **Compact closed** (`compact_closed`): the name carries a compact line of the lab (mini, nano, flash, lite,
      haiku, luna, micro);
    - **Frontier closed** (`frontier_closed`): all other closed models.

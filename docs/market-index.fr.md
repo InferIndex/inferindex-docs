@@ -67,7 +67,10 @@ Chaque modèle est placé dans une famille par une règle écrite, appliquée da
 1. **Usage spécial** (modération, embeddings, reranking, voix, OCR) : hors indice.
 2. **Code** (`code`) : le nom désigne un modèle de code (coder, codestral, devstral, codex, « -code »), qu'il soit
    ouvert ou fermé.
-3. **Modèles fermés**, sans poids publiés (par exemple Claude, GPT, Gemini, Grok, Qwen Max et Plus) :
+3. **Modèles fermés** : modèles dont le labo ne publie pas les poids, d'après une liste écrite (par exemple Claude,
+   GPT, Gemini, Grok, Qwen Max et Plus, Amazon Nova, Mistral Medium 3). Chaque entrée est justifiée par la page
+   officielle du modèle (le modèle est servi par API) et par son absence de l'organisation Hugging Face officielle du
+   labo. Un modèle dont le statut est incertain reste non classé :
    - **Fermés compacts** (`compact_closed`) : le nom porte une gamme compacte du lab (mini, nano, flash, lite,
      haiku, luna, micro) ;
    - **Fermés frontier** (`frontier_closed`) : tous les autres modèles fermés.
