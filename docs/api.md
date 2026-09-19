@@ -145,6 +145,8 @@ them. For one line per source, without deduplication, use `/resellers`.
 | `cached_ratio` | no | Share of `prompt_tokens` read from cache, between 0 and 1 (default 0) |
 | `requests_per_day` | no | Requests per day, to get a monthly estimate |
 | `explain` | no | `true` to list every excluded offer with its reasons, see [Explained response](#explained-response) |
+| `offers` | no | `false` to return only `cheapest` and the counts, without the `offers` list |
+| `limit` | no | Return only the first N offers, 1 to 500 |
 
 ```bash
 curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2"
@@ -220,6 +222,8 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 - `promo_expired` is `true` when the promotion's published end has passed: the discounted price is then no
   longer presented as the price you pay (reason code `promo_expired` in the explanation).
 - `hidden_tiers` counts offers excluded by the default tier filter, by tier name.
+- `offers_total` is the number of eligible offers, whatever `offers` or `limit`; `offers_truncated` is `true` when
+  `limit` cut the list. Invalid `offers` or `limit` values return **400**.
 - `stale_hidden` counts stale offers left out. For example, `/cheapest?model=z-ai/glm-5.2` returned
   `"stale_hidden": 1` on 2026-09-15; with `include_stale=true` that offer came back with `"stale": true` and a
   `checked_at` from the previous day.
