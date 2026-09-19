@@ -238,7 +238,8 @@ Every `/cheapest` response includes an `explanation` block saying how the result
 | `excluded` | Number of offers excluded, per reason code |
 | `reason` | Why `cheapest` was chosen, e.g. `cheapest eligible offer by blended_per_1M` (or the `sort` field, such as `estimated_cost_per_request`), or `no eligible offer` |
 
-With `explain=true`, the response also lists each excluded offer in `excluded_offers`:
+With `explain=true`, the response also lists each excluded offer in `excluded_offers` (except offers from providers
+InferIndex does not list publicly, which are only counted):
 
 ```bash
 curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2&min_context=128000&explain=true"
@@ -294,7 +295,7 @@ more than `considered − eligible`.
 | `training_not_excluded` / `training_unknown_strict` | Prompts may be used for training / unknown, with `strict=true` |
 | `signup_restricted` / `signup_unknown_strict` | Signup isn't open to everyone / unknown, with `strict=true` |
 | `quantization_inferred_strict` | Quantization inferred rather than declared, with `strict=true` |
-| `unpublishable_provider` | Offer from a provider that InferIndex does not list publicly |
+| `unpublishable_provider` | Offer from a provider that InferIndex does not list publicly. Only counted in `/cheapest`'s `explanation`: such offers never appear in `excluded_offers`, `/resellers`, `/history` or MCP results |
 
 ## Usage conditions
 
