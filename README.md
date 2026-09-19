@@ -66,8 +66,8 @@ availability; it is not an uptime guarantee.
 ## Why
 
 Provider pricing pages disagree, change without notice, and rarely show what resellers actually charge for
-the same model. InferIndex collects prices directly from 70+ sources on their own schedule (5 minutes to 24
-hours depending on the source), stores every change, and answers "who is cheapest for model X right now" from
+the same model. InferIndex collects prices directly from 70+ sources on their own schedule (from hourly to daily
+depending on the source), stores every change, and answers "who is cheapest for model X right now" from
 that history — client requests never trigger a live call to a provider.
 
 ## Data freshness and limits
