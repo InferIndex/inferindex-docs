@@ -100,6 +100,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `via_name` | Readable name of the aggregator the offer goes through, when it is disclosed (e.g. `"Eden AI"` for `via: "edenai"`); `null` for direct offers and for aggregators that aren't identified by name |
 | `offer_url` | The official page where the offer can be checked and bought: the aggregator's page when the offer is sold through a named aggregator, otherwise the provider's pricing page. `null` when no reliable public page is known |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
+| `price_context` | What the displayed price is, as a list of entries — empty for a plain price. Every percentage names its reference. See [Price context](#price-context) |
 | `official_list_price` | The lab's own list price for this model — `{ input_per_1M, output_per_1M, source_url, checked_at }` in USD — or `null` when the lab doesn't publish one. An offer that doesn't specify a region is compared with the lab's cheapest region; an offer for a given region (e.g. variant `eu` or `global`) with that same region |
 | `below_official_list` | `true` when an offer resold by someone other than the lab (including a closed model sold under the reseller's own name) is clearly below what the lab itself charges, with no discount declared. It's a signal to double-check the offer, not a promotion: the offer is still listed and can still be bought |
 | `served_model`, `requested_model`, `requested_models`, `redirect_note` | Only on offers where the lab has announced that a model id is now served by another model. The offer is listed under the model actually served (`served_model`); `requested_model` is the id to use with that provider (`requested_models` lists every id that leads to this same offer), and `redirect_note` explains the change. Such an offer is compared with the served model, including its list price |
@@ -113,6 +114,33 @@ them publishes the precision, the published value wins.
 **Gateways.** When a gateway routes to several providers, each backend it names is a separate offer: `provider`
 is the provider that serves the model and `via` the gateway (for example `"provider": "DeepInfra", "via": "vercel"`).
 When the gateway doesn't name the backend, `provider` is the gateway itself and `backend_unknown` is `true`.
+
+### Price context
+
+`price_context` explains the displayed price. The existing fields `promo`,
+`price_before_promo`, `peak_pricing` and `below_official_list` keep their meaning. An offer can carry several entries.
+
+| `type` | Meaning | Other fields |
+|---|---|---|
+| `scheduled` | Off-peak price of a published time-of-use schedule. Never a promotion | `tariff` (`"off_peak"`), `hours` (provider's description, may be `null`), `peak` (`{ input_per_1M, output_per_1M }`), `discount`, `reference: "peak"` |
+| `promotion` | Discount announced by the provider (`source: "provider"`), or confirmed when the price came back up (`source: "history"`) | `source`, `ends_at` (`null` when no end date is published), `discount`, `reference: "provider_usual"` |
+| `price_drop_observed` | Drop seen in the price history, with no announced promotion. Never shown as a promotion | `discount`, `reference: "previous_price"` |
+| `below_lab_list` | Sold below the lab's official list price, with no declared discount | `discount`, `reference: "lab_list"` |
+| `service_tier` | Non-standard service level | `tier` (`flex`, `batch` or `priority`) |
+| `cached_input` | Price of cached input tokens, kept apart from `input_per_1M` | `cache_read_per_1M` |
+
+`discount` is the drop in blended price, from 0 to 1 (4 decimals), measured against its `reference`: the peak rate
+(`peak`), the provider's usual price (`provider_usual`), the previous observed price (`previous_price`) or the lab's
+list price (`lab_list`).
+
+_Example entries as of 2026-09-19 — prices, providers and statuses change._
+
+```json
+"price_context": [
+  { "type": "promotion", "source": "provider", "ends_at": null, "discount": 0.3, "reference": "provider_usual" },
+  { "type": "cached_input", "cache_read_per_1M": 0.0216 }
+]
+```
 
 ## `GET /cheapest`
 
