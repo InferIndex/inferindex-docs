@@ -98,6 +98,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `checked_at` | Last time the offer's price was confirmed at its source. For a price that doesn't change, it is refreshed at most every 2 hours, so it can lag by up to 2 hours plus the source's collection interval |
 | `stale` | `true` when the offer hasn't been re-checked for more than 3 × its source's collection interval (6 hours minimum): its price may be out of date. Stale offers are hidden from `/cheapest` (unless `include_stale=true`) and listed last in `/resellers` |
 | `via_name` | Readable name of the aggregator the offer goes through, when it is disclosed (e.g. `"Eden AI"` for `via: "edenai"`); `null` for direct offers and for aggregators that aren't identified by name |
+| `offer_url` | The official page where the offer can be checked and bought: the aggregator's page when the offer is sold through a named aggregator, otherwise the provider's pricing page. `null` when no reliable public page is known |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
 | `official_list_price` | The lab's own list price for this model — `{ input_per_1M, output_per_1M, source_url, checked_at }` in USD — or `null` when the lab doesn't publish one. An offer that doesn't specify a region is compared with the lab's cheapest region; an offer for a given region (e.g. variant `eu` or `global`) with that same region |
 | `below_official_list` | `true` when an offer resold by someone other than the lab (including a closed model sold under the reseller's own name) is clearly below what the lab itself charges, with no discount declared. It's a signal to double-check the offer, not a promotion: the offer is still listed and can still be bought |
@@ -786,6 +787,32 @@ Before the first publication, the route returns **404**:
 ```
 
 An unknown `series` or a malformed `at` returns **400**.
+
+## `GET /trending`
+
+A ranking of models currently getting attention, up to 10 models. It is recomputed about every 6 hours.
+
+```bash
+curl "https://api.inferindex.dev/trending"
+```
+
+_Example response as of 2026-09-19 — the ranking changes._
+
+```json
+{
+  "computed_at": "2026-09-19T07:09:10.156Z",
+  "models": [
+    { "rank": 1, "id": "deepseek/deepseek-v4.1-flash", "name": "DeepSeek: DeepSeek V4.1 Flash" }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `computed_at` | When the ranking was computed |
+| `models` | Up to 10 entries, in order: `rank` (1 first), `id` (usable as `model` in the other routes), `name` |
+
+Returns **404** until a first ranking has been computed.
 
 ## `GET /models`
 
