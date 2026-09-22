@@ -90,8 +90,7 @@ small, tiny. "turbo" is not one of them: GPT-4 Turbo was a top-of-range model.
 | Model | What the lab writes | Source, read on |
 |---|---|---|
 | Perplexity Sonar | "Lightweight, cost-effective search model with grounding" | docs.perplexity.ai, 2026-09-22 |
-| Inception Mercury 2.5 | Compared with GPT-5 mini, Gemini Flash-Lite and Claude Haiku 4 in its launch post | inceptionlabs.ai, 2026-09-22 |
-| Inception Mercury 2 | "matches the quality of speed optimized frontier models" | inceptionlabs.ai, 2026-09-22 |
+| Inception Mercury 2.5 | "Comparable to cost-optimized frontier models like GPT-5.6 Luna (Low), Gemini 3.5 Flash-Lite, and Claude Haiku 4.5" (launch post) | inceptionlabs.ai, 2026-09-22 |
 
 Reasoning is not a family: most recent models are hybrid, so a separate family would be neither stable nor
 exclusive.
@@ -130,7 +129,7 @@ date of the correction).
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |
-| 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); published from the first release |
+| 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Applies from the first publication |
 
 ## Access
 
