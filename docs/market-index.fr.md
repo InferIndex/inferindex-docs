@@ -1,6 +1,6 @@
 # Indice de marché InferIndex — méthode
 
-*Version 1.0, adoptée le 18/09/2026, figée avant la première publication du lundi 05/10/2026.*
+*Version 1.1, adoptée le 22/09/2026, figée avant la première publication du lundi 05/10/2026.*
 [English version](market-index.md)
 
 L'indice de marché InferIndex suit, semaine après semaine, le prix d'un million de tokens de LLM pour chaque
@@ -71,8 +71,9 @@ Chaque modèle est placé dans une famille par une règle écrite, appliquée da
    GPT, Gemini, Grok, Qwen Max et Plus, Amazon Nova, Mistral Medium 3). Chaque entrée est justifiée par la page
    officielle du modèle (le modèle est servi par API) et par son absence de l'organisation Hugging Face officielle du
    labo. Un modèle dont le statut est incertain reste non classé :
-   - **Fermés compacts** (`compact_closed`) : le nom porte une gamme compacte du lab (mini, nano, flash, lite,
-     haiku, luna, micro) ;
+   - **Fermés compacts** (`compact_closed`) : un modèle fermé est compact quand son nom porte l'un des mots de
+     gamme compacte du labo, ou quand le labo lui-même le présente comme léger ou le compare à des modèles compacts —
+     jamais d'après son prix. Voir [Modèles fermés compacts](#modèles-fermés-compacts) ;
    - **Fermés frontier** (`frontier_closed`) : tous les autres modèles fermés.
 4. **Modèles à poids ouverts**, selon le nombre total de paramètres affiché sur la page Hugging Face du modèle (relevé,
    daté et sourcé par nous) :
@@ -82,6 +83,19 @@ Chaque modèle est placé dans une famille par une règle écrite, appliquée da
 5. **Sinon, non classé** : hors indice et listé comme tel, sans jamais deviner sa famille. C'est le cas, par
    exemple, d'un modèle ouvert dont la taille n'est pas encore relevée, ou d'un modèle dont le statut des poids
    n'est pas établi.
+
+### Modèles fermés compacts
+
+**(A) Mots de gamme dans le nom** : mini, nano, micro, lite, flash (y compris flash-lite et flashx), haiku, luna, air,
+small, tiny. « turbo » n'en fait pas partie : GPT-4 Turbo était un modèle haut de gamme.
+
+**(B) Le positionnement écrit du labo lui-même**, pour les modèles dont le nom ne porte aucun de ces mots :
+
+| Modèle | Ce qu'écrit le labo | Source, lue le |
+|---|---|---|
+| Perplexity Sonar | « Lightweight, cost-effective search model with grounding » (modèle de recherche léger et économique) | docs.perplexity.ai, 22/09/2026 |
+| Inception Mercury 2.5 | Comparé à GPT-5 mini, Gemini Flash-Lite et Claude Haiku 4 dans son annonce de lancement | inceptionlabs.ai, 22/09/2026 |
+| Inception Mercury 2 | « matches the quality of speed optimized frontier models » (égale la qualité des modèles frontier optimisés pour la vitesse) | inceptionlabs.ai, 22/09/2026 |
 
 Le raisonnement n'est pas une famille : la plupart des modèles récents sont hybrides, et une famille à part ne serait
 ni stable ni exclusive.
@@ -120,6 +134,7 @@ précédente, nouvelle valeur, motif, date de la correction).
 | Version | Date | Changement |
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
+| 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; appliquée dès la première publication |
 
 ## Accès
 
