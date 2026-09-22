@@ -783,7 +783,7 @@ Response shape (values in `<…>` are placeholders, not published data):
   "index": "InferIndex market index",
   "series": "market",
   "published_at": "<Monday>T00:00:00.000Z",
-  "method_version": "1.0",
+  "method_version": "1.1",
   "unit": "USD per 1M tokens, blended 3:1 (input:output)",
   "families": [
     { "family": "frontier_closed", "value": "<number>", "models": "<n>", "model_ids": ["…"] },

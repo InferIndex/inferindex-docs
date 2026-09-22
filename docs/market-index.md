@@ -1,6 +1,6 @@
 # InferIndex market index — methodology
 
-*Version 1.0, adopted 2026-09-18, fixed before the first publication on Monday 2026-10-05.*
+*Version 1.1, adopted 2026-09-22, fixed before the first publication on Monday 2026-10-05.*
 [Version française](market-index.fr.md)
 
 The InferIndex market index tracks what one million LLM tokens cost, week after week, for each family of models.
@@ -68,8 +68,9 @@ Each model is placed in one family by a written rule, applied in this order:
    Gemini, Grok, Qwen Max and Plus, Amazon Nova, Mistral Medium 3). Each entry is backed by the model's official page
    (the model is served through an API) and by the model's absence from the lab's official Hugging Face
    organization. A model whose status is uncertain stays unclassified:
-   - **Compact closed** (`compact_closed`): the name carries a compact line of the lab (mini, nano, flash, lite,
-     haiku, luna, micro);
+   - **Compact closed** (`compact_closed`): a closed model is compact when its name carries one of the lab's
+     compact tier words, or when the lab itself presents it as lightweight or compares it with compact models — never
+     based on its price. See [Compact closed models](#compact-closed-models);
    - **Frontier closed** (`frontier_closed`): all other closed models.
 4. **Open-weight models**, by the total parameter count shown on the model's Hugging Face page (recorded, dated
    and sourced by us):
@@ -78,6 +79,18 @@ Each model is placed in one family by a written rule, applied in this order:
    - **Small** (`open_small`): under 40 billion.
 5. **Otherwise, unclassified**: outside the index and listed as such — we never guess a family. This covers, for
    example, an open model whose size isn't recorded yet, or a model whose weights status isn't established.
+
+### Compact closed models
+
+**(A) Tier words in the name**: mini, nano, micro, lite, flash (including flash-lite and flashx), haiku, luna, air,
+small, tiny. "turbo" is not one of them: GPT-4 Turbo was a top-of-range model.
+
+**(B) The lab's own written positioning**, for models whose name carries none of these words:
+
+| Model | What the lab writes | Source, read on |
+|---|---|---|
+| Perplexity Sonar | "Lightweight, cost-effective search model with grounding" | docs.perplexity.ai, 2026-09-22 |
+| Inception Mercury 2.5 | "Comparable to cost-optimized frontier models like GPT-5.6 Luna (Low), Gemini 3.5 Flash-Lite, and Claude Haiku 4.5" (launch post) | inceptionlabs.ai, 2026-09-22 |
 
 Reasoning is not a family: most recent models are hybrid, so a separate family would be neither stable nor
 exclusive.
@@ -116,6 +129,7 @@ date of the correction).
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |
+| 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Applies from the first publication |
 
 ## Access
 
