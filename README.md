@@ -89,6 +89,8 @@ that history — client requests never trigger a live call to a provider.
 
 ## Reliability of the prices — read this before trusting a number
 
+Data corrections are listed in the [changelog](CHANGELOG.md).
+
 InferIndex is a comparison tool, not a source of truth. Treat every price as "what our collector last saw",
 not as a guarantee of what you will be billed:
 
