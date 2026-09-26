@@ -57,7 +57,8 @@ Les prix en devise étrangère sont convertis en dollars au dernier taux de réf
 mesuré (daté au plus tard la veille ; pour une publication du lundi 00:00 UTC, le taux du vendredi précédent).
 
 Dans la série officielle, la référence d'un modèle est son prix de liste chez le lab (voir *Deux séries*) : hors
-remise, niveau standard, région la moins chère. Les exclusions de la série de marché et le minimum de 3 fournisseurs
+remise, niveau standard, région la moins chère. Si la page de tarifs du labo ne peut plus être lue, son dernier prix
+de liste compte 14 jours au plus ; ensuite, le modèle sort de la série jusqu'à ce que la page soit de nouveau lue. Les exclusions de la série de marché et le minimum de 3 fournisseurs
 ne s'appliquent pas. Les modèles en cours d'examen sont exclus dans les deux séries.
 
 ## Familles
@@ -133,7 +134,7 @@ précédente, nouvelle valeur, motif, date de la correction).
 | Version | Date | Changement |
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
-| 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; trois modèles passent en compacts : GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Appliquée dès la première publication |
+| 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; trois modèles passent en compacts : GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Dans la série officielle, un prix de liste qui ne peut plus être relu compte 14 jours au plus. Appliquée dès la première publication |
 
 ## Accès
 

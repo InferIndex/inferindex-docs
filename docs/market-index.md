@@ -54,7 +54,8 @@ Prices in another currency are converted to USD at the latest ECB reference rate
 instant (dated no later than the day before; for a Monday 00:00 UTC publication, the previous Friday's rate).
 
 In the official series, a model's reference is its lab list price (see *Two series*): undiscounted, standard
-service level, cheapest region. Market-series exclusions and the 3-provider minimum don't apply. Models under review
+service level, cheapest region. If the lab's pricing page can no longer be read, its last list price counts for 14
+days at most; after that, the model leaves the series until the page is read again. Market-series exclusions and the 3-provider minimum don't apply. Models under review
 are excluded in both series.
 
 ## Families
@@ -129,7 +130,7 @@ date of the correction).
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |
-| 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Applies from the first publication |
+| 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. In the official series, a list price that can no longer be read counts for 14 days at most. Applies from the first publication |
 
 ## Access
 
