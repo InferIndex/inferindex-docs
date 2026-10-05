@@ -11,9 +11,38 @@ against the production API on 2026-09-15.
 ## Authentication and rate limits
 
 No key is needed. Requests without a key are limited to **60 requests per minute per IP** on `/cheapest`,
-`/history` and `/resellers` (requests answered from cache don't count). Over the limit, the API returns **429**.
-Other routes have no limit today, which may change. The MCP server's limits are in the
+`/history` and `/resellers`. Only requests that are not served from cache count. The window is the clock minute (UTC),
+not a sliding window: 60 requests at the end of a minute and 60 at the start of the next one are both accepted. Over the
+limit, the API returns **429**. Other routes have no limit today, which may change. The MCP server's limits are in the
 [README](../README.md#use-with-ai-assistants-mcp).
+
+### When you are over the limit
+
+_Example response — `Retry-After` and `RateLimit-Reset` vary between 1 and 60._
+
+```
+HTTP/1.1 429 Too Many Requests
+Cache-Control: no-store
+Retry-After: 52
+RateLimit-Limit: 60
+RateLimit-Policy: 60;w=60
+RateLimit-Remaining: 0
+RateLimit-Reset: 52
+
+{
+  "error": "Too many requests, retry in a minute",
+  "hint": "A free API key raises the limit from 60 to 300 requests per minute: https://inferindex.dev/account/en"
+}
+```
+
+- `Retry-After` and `RateLimit-Reset` are the seconds left until the next clock minute (UTC), from 1 to 60: wait that
+  long, then retry. `RateLimit-Limit` is the limit that applied.
+- `hint` appears only for a caller without a key, and only when a free account can be created. With a key,
+  `RateLimit-Limit` is 300 and there is no `hint`.
+- A 429 response is never cached.
+- An MCP tool call that is refused carries the same `error` and `hint` in its result.
+- The limit is exact when our counter answers in time. If it is slow or unavailable, the request is served rather than
+  refused, so don't rely on being refused.
 
 You can optionally send an API key in the `x-api-key` header to get **300 requests per minute per key** on
 those routes:
