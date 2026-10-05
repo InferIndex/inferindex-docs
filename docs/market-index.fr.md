@@ -13,7 +13,7 @@ et vérifiée.
   un token de sortie : `(3 × entrée + sortie) / 4`.
 - **Regroupement** : une valeur par **famille de modèles** (voir plus bas).
 - **Fréquence** : publié chaque **lundi**, à la valeur de **00:00 UTC** ce jour-là. Première publication :
-  **05/10/2026**.
+  **05/10/2026** (les deux séries).
 - **Données** : uniquement les relevés de prix d'InferIndex, collectés depuis le début du suivi le **14/09/2026**.
   Aucune donnée antérieure, ni aucune donnée d'un autre indice ou jeu de données, n'y entre. Chaque valeur est
   reproductible à partir de nos relevés.

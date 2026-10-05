@@ -12,7 +12,7 @@ This page describes exactly how it is computed, so that every published value ca
   token: `(3 × input + output) / 4`.
 - **Grouping**: one value per **model family** (see below).
 - **Frequency**: published every **Monday**, at the value of **00:00 UTC** that day. First publication:
-  **2026-10-05**.
+  **2026-10-05** (both series).
 - **Data**: InferIndex's own price records only, collected since tracking started on **2026-09-14**. No data from
   before that date, and no data from any other index or dataset, goes into it. Every value can be reproduced from
   our records.
