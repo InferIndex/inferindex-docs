@@ -1,6 +1,7 @@
 # Indice de marché InferIndex — méthode
 
-*Version 1.1, adoptée le 22/09/2026, figée avant la première publication du lundi 05/10/2026.*
+*Version 1.2, appliquée à partir de la publication du lundi 12/10/2026. La première publication (05/10/2026) a été
+calculée en version 1.1 et n'est pas recalculée.*
 [English version](market-index.md)
 
 L'indice de marché InferIndex suit, semaine après semaine, le prix d'un million de tokens de LLM pour chaque
@@ -36,7 +37,10 @@ combinées.
 
 On part des offres **en vigueur à l'instant du calcul** (même règle que `/history?at=`), puis on **exclut** :
 
-- les offres en promotion, annoncée ou probable, y compris une promotion terminée ;
+- les offres en promotion, annoncée ou probable, y compris une promotion terminée. **À partir de la version 1.2**, une
+  remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal ;
+  les remises plus récentes, celles dont la fin est annoncée et les baisses seulement déduites de l'historique des prix
+  restent exclues ;
 - les prix convertis depuis des points ou des crédits ;
 - le prix unique d'une passerelle pour plusieurs fournisseurs non nommés ;
 - les offres périmées à cet instant (non revérifiées depuis plus de trois fois la fréquence de collecte de leur
@@ -135,6 +139,7 @@ précédente, nouvelle valeur, motif, date de la correction).
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
 | 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; trois modèles passent en compacts : GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Dans la série officielle, un prix de liste qui ne peut plus être relu compte 14 jours au plus. Appliquée dès la première publication |
+| 1.2 | 12/10/2026 (publication) | Une remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal dans la série de marché : un prix qui dure sans fin annoncée n'est plus une promotion. Mesuré sur la publication du 05/10/2026, qui n'est pas recalculée : aucune médiane de famille ne change, et cinq prix de référence baissent, tous dans `open_large`. |
 
 ## Accès
 
