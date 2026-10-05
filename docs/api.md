@@ -813,7 +813,8 @@ Response shape (values in `<…>` are placeholders, not published data):
   `previous_*` are the values before the correction and `value` / `models` those after it (also shown in
   `families`).
 
-Before the first publication, the route returns **404**:
+Both series have been published every Monday since 2026-10-05. An `at` date earlier than the first publication returns
+**404**:
 
 ```json
 {
