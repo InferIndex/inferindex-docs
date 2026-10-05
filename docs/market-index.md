@@ -1,6 +1,7 @@
 # InferIndex market index — methodology
 
-*Version 1.1, adopted 2026-09-22, fixed before the first publication on Monday 2026-10-05.*
+*Version 1.2, applies from the publication of Monday 2026-10-12. The first publication (2026-10-05) was computed with
+version 1.1 and is not recomputed.*
 [Version française](market-index.fr.md)
 
 The InferIndex market index tracks what one million LLM tokens cost, week after week, for each family of models.
@@ -33,7 +34,9 @@ questions — "what does the market charge?" and "what do the labs list?" — an
 
 We take the offers **in force at the moment of calculation** (the same rule as `/history?at=`), then **exclude**:
 
-- offers on promotion, announced or probable, including promotions that have ended;
+- offers on promotion, announced or probable, including promotions that have ended. **From version 1.2**, a discount
+  declared by a provider with no announced end date for 14 days or more counts as a normal price; more recent
+  discounts, discounts with an announced end and drops only inferred from the price history stay excluded;
 - prices converted from points or credits;
 - a gateway's single price for several unnamed backends;
 - offers that are stale at that moment (not re-checked for more than three times their source's collection
@@ -125,12 +128,14 @@ are never silently recomputed.**
 **Corrections.** A published week is never silently recomputed. If a data error is fixed after publication, the week
 is recomputed through an explicit correction with a mandatory reason: every family whose value or composition changes
 keeps its previous value, and `GET /index` lists the corrections for that date (previous value, new value, reason,
-date of the correction).
+date of the correction). A correction keeps the method version of the week it corrects: it changes the data, never the
+method (a week published with 1.1 stays on 1.1, even if corrected after 1.2 applies).
 
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |
 | 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. In the official series, a list price that can no longer be read counts for 14 days at most. Applies from the first publication |
+| 1.2 | 2026-10-12 (publication) | A discount declared by a provider with no announced end date for 14 days or more counts as a normal price in the market series: a price that lasts with no announced end is no longer a promotion. Measured on the publication of 2026-10-05, which is not recomputed: no family median changes, and five reference prices go down, all in `open_large`. |
 
 ## Access
 
