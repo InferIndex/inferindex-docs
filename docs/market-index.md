@@ -135,7 +135,7 @@ method (a week published with 1.1 stays on 1.1, even if corrected after 1.2 appl
 |---|---|---|
 | 1.0 | 2026-09-18 | First version |
 | 1.1 | 2026-09-22 | Written definition of "compact" for closed models (lab tier name or the lab's own written positioning, never price); three models move to compact: GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. In the official series, a list price that can no longer be read counts for 14 days at most. Applies from the first publication |
-| 1.2 | 2026-10-12 (publication) | A discount declared by a provider with no announced end date for 14 days or more counts as a normal price in the market series: a price that lasts with no announced end is no longer a promotion. Measured on the publication of 2026-10-05, which is not recomputed: no family median changes, and five reference prices go down, all in `open_large`. |
+| 1.2 | 2026-10-05 (adopted); applies from the 2026-10-12 publication | A discount declared by a provider with no announced end date for 14 days or more counts as a normal price in the market series: a price that lasts with no announced end is no longer a promotion. Measured on the publication of 2026-10-05, which is not recomputed: no family median changes, and five reference prices go down, all in `open_large`. |
 
 ## Access
 

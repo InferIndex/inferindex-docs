@@ -141,7 +141,7 @@ l'entrée en vigueur de la 1.2).
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
 | 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; trois modèles passent en compacts : GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Dans la série officielle, un prix de liste qui ne peut plus être relu compte 14 jours au plus. Appliquée dès la première publication |
-| 1.2 | 12/10/2026 (publication) | Une remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal dans la série de marché : un prix qui dure sans fin annoncée n'est plus une promotion. Mesuré sur la publication du 05/10/2026, qui n'est pas recalculée : aucune médiane de famille ne change, et cinq prix de référence baissent, tous dans `open_large`. |
+| 1.2 | 05/10/2026 (adoptée) ; s'applique à partir de la publication du 12/10/2026 | Une remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal dans la série de marché : un prix qui dure sans fin annoncée n'est plus une promotion. Mesuré sur la publication du 05/10/2026, qui n'est pas recalculée : aucune médiane de famille ne change, et cinq prix de référence baissent, tous dans `open_large`. |
 
 ## Accès
 
