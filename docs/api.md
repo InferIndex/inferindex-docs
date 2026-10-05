@@ -790,6 +790,9 @@ Response shape (values in `<…>` are placeholders, not published data):
     { "family": "compact_closed", "value": null, "models": 2, "model_ids": ["…", "…"] }
   ],
   "available_dates": ["<Monday>", "…"],
+  "archives": [
+    { "kind": "publication", "url": "https://api.inferindex.dev/index/archive/<Monday>/publication.json", "sha256": "<hex>", "bytes": "<n>", "archived_at": "<timestamp>" }
+  ],
   "corrections": []
 }
 ```
@@ -799,6 +802,11 @@ Response shape (values in `<…>` are placeholders, not published data):
   counted, so the value can be recomputed from their reference prices.
 - `method_version` is the methodology version used for that publication.
 - `available_dates` lists the published Mondays of the series (up to 52, most recent first).
+- `archives` lists the archived JSON files of the week and series served: the publication itself, and one more file for
+  each later correction. Each entry gives the file's `url`, its `sha256` fingerprint, its size in `bytes` and
+  `archived_at`. To check a file, keep the fingerprint on the day it is published, download the file later and compute
+  its SHA-256 (`sha256sum file.json` on Linux, `shasum -a 256 file.json` on macOS, `Get-FileHash file.json` in
+  PowerShell): if both match, the file is exactly the one published. The service never overwrites an archived file.
 - Values are stored at publication and served as published. A published week is only recomputed through an explicit
   correction, listed in `corrections` for the week and series served (empty when there is none). Each entry:
   `{ "family", "previous_value", "value", "previous_models", "models", "reason", "corrected_at" }`, where
