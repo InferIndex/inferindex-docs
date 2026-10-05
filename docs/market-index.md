@@ -128,7 +128,8 @@ are never silently recomputed.**
 **Corrections.** A published week is never silently recomputed. If a data error is fixed after publication, the week
 is recomputed through an explicit correction with a mandatory reason: every family whose value or composition changes
 keeps its previous value, and `GET /index` lists the corrections for that date (previous value, new value, reason,
-date of the correction).
+date of the correction). A correction keeps the method version of the week it corrects: it changes the data, never the
+method (a week published with 1.1 stays on 1.1, even if corrected after 1.2 applies).
 
 | Version | Date | Change |
 |---|---|---|

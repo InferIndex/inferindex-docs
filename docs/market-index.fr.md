@@ -133,7 +133,9 @@ avec sa date et sa raison, dans l'historique ci-dessous. Chaque publication indi
 **Corrections.** Une semaine publiée n'est jamais recalculée en silence. Si une erreur de données est corrigée après
 publication, la semaine est recalculée par une correction explicite, avec un motif obligatoire : chaque famille dont la
 valeur ou la composition change garde sa valeur précédente, et `GET /index` liste les corrections de cette date (valeur
-précédente, nouvelle valeur, motif, date de la correction).
+précédente, nouvelle valeur, motif, date de la correction). Une correction garde la version de méthode de la semaine
+corrigée : elle change les données, jamais la méthode (une semaine publiée en 1.1 reste en 1.1, même corrigée après
+l'entrée en vigueur de la 1.2).
 
 | Version | Date | Changement |
 |---|---|---|
