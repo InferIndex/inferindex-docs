@@ -124,7 +124,7 @@ When the gateway doesn't name the backend, `provider` is the gateway itself and 
 |---|---|---|
 | `scheduled` | Off-peak price of a published time-of-use schedule. Never a promotion | `tariff` (`"off_peak"`), `hours` (provider's description, may be `null`), `peak` (`{ input_per_1M, output_per_1M }`), `discount`, `reference: "peak"` |
 | `promotion` | Discount announced by the provider (`source: "provider"`), or confirmed when the price came back up (`source: "history"`) | `source`, `ends_at` (`null` when no end date is published), `discount`, `reference: "provider_usual"` |
-| `price_drop_observed` | Drop seen in the price history, with no announced promotion. Never shown as a promotion | `discount`, `reference: "previous_price"` |
+| `price_drop_observed` | Drop seen in the price history, with no announced promotion, or a discount declared by a provider with no announced end date for 14 days or more. Never shown as a promotion | `discount`, `reference: "previous_price"` |
 | `below_lab_list` | Sold below the lab's official list price, with no declared discount | `discount`, `reference: "lab_list"` |
 | `service_tier` | Non-standard service level | `tier` (`flex`, `batch` or `priority`) |
 | `cached_input` | Price of cached input tokens, kept apart from `input_per_1M` | `cache_read_per_1M` |
@@ -176,6 +176,7 @@ them. For one line per source, without deduplication, use `/resellers`.
 | `explain` | no | `true` to list every excluded offer with its reasons, see [Explained response](#explained-response) |
 | `offers` | no | `false` to return only `cheapest` and the counts, without the `offers` list |
 | `limit` | no | Return only the first N offers, 1 to 500 |
+| `detail` | no | `full` (default) or `compact`: a shorter response for AI assistants, see [Compact view](#compact-view) |
 
 ```bash
 curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2"
@@ -247,7 +248,9 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 - `promo`, `promo_source`, `confidence`, `promo_since`, `promo_ends_at` and `price_before_promo` describe a
   detected promotion; `promo` is `false` (and the rest `null`) on most offers. `promo_ends_at` is always an ISO
   date-time (e.g. `2026-09-18T23:59:59Z`): when the source publishes only a date, the promotion runs until
-  23:59:59 UTC that day.
+  23:59:59 UTC that day. A discount declared by a provider with no announced end date for 14 days or more is shown as a
+  price drop rather than a promotion: `promo` is `"probable"`, `price_before_promo` holds the previous price and
+  `price_context` has a `price_drop_observed` entry. The price and the ranking don't change.
 - `promo_expired` is `true` when the promotion's published end has passed: the discounted price is then no
   longer presented as the price you pay (reason code `promo_expired` in the explanation).
 - `hidden_tiers` counts offers excluded by the default tier filter, by tier name.
@@ -259,6 +262,33 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 
 Only active sources are included. 404 with `other_matches` (up to 5 close model ids) if `model` doesn't
 resolve, or if it resolves but has no tracked price.
+
+## Compact view
+
+`detail=compact` on `/cheapest` and `/resellers` returns a shorter response, made for AI assistants: the same winner and
+the same prices as the default view, but the winner without its empty fields, and **one short line** for each other
+offer. `detail=full` is the default and changes nothing. Any other value returns **400** (`detail must be full or compact`).
+
+```bash
+curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2&detail=compact&limit=3"
+```
+
+The response adds `"detail": "compact"` and a `note`. Each line for the other offers carries `provider`, `via`,
+`input_per_1M`, `output_per_1M`, `blended_per_1M`, the estimated cost when the request asks for one, `signals` and
+`training_on_prompts`. Example line, as of 2026-10-05 — prices and providers change:
+
+```json
+{ "provider": "Avian", "via": "direct", "input_per_1M": 0.23, "output_per_1M": 0.33, "blended_per_1M": 0.255,
+  "training_on_prompts": { "provider": "no" } }
+```
+
+How to read it:
+
+- A field or condition that is absent was not published by the provider: it never means "no".
+- `signals` lists the flags that are true (for example `stale`, `promo`, `points_based`, `backend_unknown`); a flag that is
+  not listed is false.
+- For everything else (every condition, reliability, original currency, context), use the default view or the
+  `/cheapest` response without `detail`.
 
 ## Explained response
 
@@ -394,7 +424,7 @@ switch to a cheaper offer you can't actually sign up for. Each field uses the sa
 
 | Field | Codes |
 |---|---|
-| `signup` | `open`, `waitlist`, `invite_only`, `closed` |
+| `signup` | `open`, `waitlist`, `invite_only`, `restricted` (sign-up possible, but reserved for some countries or profiles), `closed` |
 | `minimum_spend` | Whether a minimum spend or prepaid credit is required |
 | `payment_card` | Whether a payment card is required to start |
 | `excluded_countries` | Countries the provider says it doesn't serve |
@@ -403,7 +433,7 @@ switch to a cheaper offer you can't actually sign up for. Each field uses the sa
 Any field can be `unknown`, which means the provider doesn't publish it clearly — not that the answer is no.
 
 **Filter**: `no_waitlist=true` on `/cheapest` and `/resellers` keeps only providers whose signup is open to
-everyone. Reason codes `signup_restricted` and, with `strict=true`, `signup_unknown_strict`.
+everyone: no waitlist, invitation or country restriction. Reason codes `signup_restricted` and, with `strict=true`, `signup_unknown_strict`.
 
 These fields were introduced on 2026-09-16 and are being filled in progressively, so most are still `unknown`
 today; `no_waitlist=true&strict=true` therefore excludes almost everything for now.
@@ -479,6 +509,7 @@ Paginated beyond 100 offers.
 | `limit` | no | Page size, default 100, max 500 |
 | `cursor` | no | Opaque cursor from a previous response's `next_cursor` |
 | `include_tiers` | no | Same as `/cheapest` |
+| `detail` | no | `full` (default) or `compact`, see [Compact view](#compact-view) |
 | `region`, `no_training`, `no_waitlist`, `strict` | no | Same as `/cheapest`, see [Usage conditions](#usage-conditions) and [Access conditions](#access-conditions) |
 | `prompt_tokens`, `output_tokens`, `cached_ratio`, `requests_per_day` | no | Cost estimate, same as `/cheapest` |
 
