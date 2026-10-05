@@ -29,12 +29,18 @@ RateLimit-Policy: 60;w=60
 RateLimit-Remaining: 0
 RateLimit-Reset: 52
 
-{ "error": "Too many requests, retry in a minute" }
+{
+  "error": "Too many requests, retry in a minute",
+  "hint": "A free API key raises the limit from 60 to 300 requests per minute: https://inferindex.dev/account/en"
+}
 ```
 
 - `Retry-After` and `RateLimit-Reset` are the seconds left until the next clock minute (UTC), from 1 to 60: wait that
   long, then retry. `RateLimit-Limit` is the limit that applied.
+- `hint` appears only for a caller without a key, and only when a free account can be created. With a key,
+  `RateLimit-Limit` is 300 and there is no `hint`.
 - A 429 response is never cached.
+- An MCP tool call that is refused carries the same `error` and `hint` in its result.
 - The limit is exact when our counter answers in time. If it is slow or unavailable, the request is served rather than
   refused, so don't rely on being refused.
 
