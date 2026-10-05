@@ -77,7 +77,8 @@ that history — client requests never trigger a live call to a provider.
 - **Collection frequency**: most sources are polled hourly; a few (exchange rates, model catalog) once a day.
 - **Rate limits**: 60 requests per minute per IP on `/cheapest`, `/history` and `/resellers`, counting only
   requests not answered from cache. An optional API key (`x-api-key` header) raises this to 300 requests per
-  minute per key; free keys will be offered, self-service sign-up isn't available yet. An invalid key returns
+  minute per key; get a free key with a free account at https://inferindex.dev/account/en (see
+  [API keys](docs/api.md#api-keys)). An invalid key returns
   401. Over the limit, requests get `429`. The MCP server has its own limits, see
   [Use with AI assistants](#use-with-ai-assistants-mcp).
 - **Cost estimate**: add `prompt_tokens`, `output_tokens`, `cached_ratio` and `requests_per_day` to `/cheapest`
