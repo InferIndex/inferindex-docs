@@ -213,6 +213,10 @@ look up prices for you:
 
 Every result includes `api_url`, the equivalent API call, so you can check or reuse it.
 
+`cheapest`, `compare_providers` and `estimate_cost` return a compact view by default: the winner in detail and one short
+line per other offer. Pass `detail: "full"` to get every field of every offer. In the compact view, an absent condition
+was not published by the provider (it never means "no"), and a flag that is not listed in `signals` is false.
+
 ### Setup
 
 For Cline and other agents that install servers themselves, see [llms-install.md](llms-install.md).
