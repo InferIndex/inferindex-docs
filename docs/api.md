@@ -11,7 +11,7 @@ against the production API on 2026-09-15.
 ## Authentication and rate limits
 
 No key is needed. Requests without a key are limited to **60 requests per minute per IP** on `/cheapest`,
-`/history` and `/resellers` (requests answered from cache don't count). Over the limit, the API returns **429**.
+`/history`, `/resellers`, `/self-host`, `/gpus` and `/gpu-rentals` (requests answered from cache don't count). Over the limit, the API returns **429**.
 Other routes have no limit today, which may change. The MCP server's limits are in the
 [README](../README.md#use-with-ai-assistants-mcp).
 
@@ -908,6 +908,608 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 
 `count` is the total number of matches; `models` is capped at 50 even if `count` is higher. Only real models are
 listed — see [Model identifiers](#model-identifiers).
+
+## GPU rental prices
+
+Two routes list what it costs to rent a GPU by the hour, as the providers we track publish it. They are the prices behind [Self-host or API](#self-host-or-api). Each offer names its provider and links to the provider's public price page.
+
+| Route | What it returns |
+|---|---|
+| `GET /gpus` | The GPU types we track, with the lowest price of each tier and how many providers offer it. |
+| `GET /gpu-rentals?gpu=<id>` | The rental offers for one GPU, one block per tier, each with its own cheapest offer. |
+
+```
+GET https://api.inferindex.dev/gpus
+GET https://api.inferindex.dev/gpu-rentals?gpu=h100-sxm-80gb
+```
+
+### How to read the prices
+
+- Prices are in **USD per GPU per hour**, as each provider publishes them on its public price list, and **dated**: `price_since` (when we first saw this price) and `checked_at` (when we last confirmed it).
+- **Tiers are never compared with each other.** `guaranteed` is on-demand capacity the provider presents as not interrupted (it is not a long-term reservation, and we do not verify availability); `community` is capacity from third-party hosts; `spot` is interruptible capacity the provider can reclaim. Each tier has its own cheapest offer; there is no winner across tiers, because they are different products.
+- **The price per GPU depends on the configuration.** A single GPU and a multi-GPU node of the same provider can have different prices per GPU, so compare offers with the same `gpu_count`. Each tier gives its cheapest offer per configuration in `cheapest_by_gpu_count`.
+- `billing` (`second`, `minute` or `hour`) and `region` are left out when the provider does not publish them; we never fill them in.
+- An offer that was not re-checked for more than three times the reading interval of its source (at least six hours: about 18 hours today) is marked `"stale": true`. It stays listed, after the fresh offers, and is never the cheapest.
+- Each provider's price list is read every six hours, and each offer carries `checked_at`. Answers are cached for up to 30 minutes (`Cache-Control: public, max-age=1800`); `fetched_at` says when the answer was built.
+- The same per-IP limit applies as to the other routes (60 requests a minute without a key); cached answers are not counted.
+
+### `GET /gpus`
+
+No parameters. Response:
+
+| Field | Meaning |
+|---|---|
+| `gpus` | One entry per GPU type: `id` (use it in `/gpu-rentals` and as `gpu` in `/self-host`), `name`, `family`, `form` (SXM, PCIe… or `null`), `vram_gb` (or `null`), and `cheapest`. |
+| `gpus[].cheapest` | For each tier that has a fresh offer: `usd_per_gpu_hour`, `provider`, `gpu_count` (the configuration of that offer) and `providers` (how many distinct providers have a fresh offer for this GPU at this tier, whatever the configuration; not the number of providers at the lowest price). A tier without a fresh offer is absent. `gpu_count` is the configuration of the cheapest offer: it can be a multi-GPU node, which is not comparable with a single GPU (see `cheapest_by_gpu_count` in `/gpu-rentals`). At equal prices, the offer shown is the first by price, then by size of configuration, then by provider name. |
+| `total` | Number of GPU types. |
+| `note` | The rules above in one paragraph. |
+| `fetched_at` | When the answer was built. |
+
+### `GET /gpu-rentals`
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `gpu` | required | A GPU id from `/gpus`, for example `h100-sxm-80gb`. |
+| `tier` | all three | `guaranteed`, `community` or `spot`: only this tier. |
+| `gpu_count` | all | `1`, `2`, `4`, `8` or `16`: only this published configuration. As of 6 October 2026 the largest published node has 8 GPUs, so `gpu_count=16` returns a 200 with empty tiers (`cheapest: null`, `offers: []`, `offers_total: 0`). |
+| `region` | all | Only this region, as published by the provider. An unknown region returns a 400 that lists the regions we have. |
+| `limit` | 10 | 1 to 50 offers per tier. |
+
+Response:
+
+| Field | Meaning |
+|---|---|
+| `gpu` | The GPU: `id`, `name`, `family`, `form`, `vram_gb`. |
+| `tiers` | One block per tier (`guaranteed`, `community`, `spot`, or only the one you asked for). |
+| `tiers.<tier>.cheapest` | The cheapest fresh offer of the tier, or `null`. |
+| `tiers.<tier>.cheapest_by_gpu_count` | The cheapest fresh offer for each published configuration, keyed by `gpu_count`. |
+| `tiers.<tier>.offers` | Up to `limit` offers, fresh ones first, then stale ones, each by increasing price. |
+| `tiers.<tier>.offers_total` | How many offers the tier has before `limit`. |
+| `note`, `fetched_at` | As above. |
+
+An offer has: `provider`, `tier`, `usd_per_gpu_hour`, `gpu_count`, `billing` and `region` when published, `price_since`, `checked_at`, `source_url` (the provider's public price page, when there is one) and `stale` when it applies.
+
+Errors: a missing or malformed `gpu` returns a 400; an invalid `tier`, `gpu_count`, `region` or `limit` returns a 400 that says the values allowed; a GPU we do not know, or one with no open offer, returns a 404 ("see /gpus"). `limit` applies to each tier: `offers_total` gives the number of offers the tier has.
+
+### Examples
+
+```bash
+curl "https://api.inferindex.dev/gpus"
+```
+
+_Abridged example response as of 2026-10-06 — prices, providers and statuses change; `…` marks what was left out._
+
+```json
+{
+  "gpus": [
+    {
+      "id": "b200-sxm-180gb",
+      "name": "B200 SXM 180GB",
+      "family": "B200",
+      "form": "SXM",
+      "vram_gb": 180,
+      "cheapest": {
+        "guaranteed": {
+          "usd_per_gpu_hour": 6.69,
+          "provider": "Lambda",
+          "gpu_count": 8,
+          "providers": 4
+        },
+        "spot": {
+          "usd_per_gpu_hour": 3.56,
+          "provider": "Verda",
+          "gpu_count": 1,
+          "providers": 2
+        }
+      }
+    },
+    {
+      "id": "h100-sxm-80gb",
+      "name": "H100 SXM 80GB",
+      "family": "H100",
+      "form": "SXM",
+      "vram_gb": 80,
+      "cheapest": {
+        "guaranteed": {
+          "usd_per_gpu_hour": 3.2,
+          "provider": "Hyperstack",
+          "gpu_count": 1,
+          "providers": 9
+        },
+        "community": {
+          "usd_per_gpu_hour": 2.69,
+          "provider": "RunPod",
+          "gpu_count": 1,
+          "providers": 1
+        },
+        "spot": {
+          "usd_per_gpu_hour": 1.89,
+          "provider": "Verda",
+          "gpu_count": 1,
+          "providers": 2
+        }
+      }
+    },
+    "…"
+  ],
+  "total": 37,
+  "note": "…",
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+```bash
+curl "https://api.inferindex.dev/gpu-rentals?gpu=h100-sxm-80gb&limit=3"
+```
+
+_Abridged example response as of 2026-10-06 — prices, providers and statuses change; `…` marks what was left out._
+
+```json
+{
+  "gpu": {
+    "id": "h100-sxm-80gb",
+    "name": "H100 SXM 80GB",
+    "family": "H100",
+    "form": "SXM",
+    "vram_gb": 80
+  },
+  "tiers": {
+    "guaranteed": {
+      "cheapest": {
+        "provider": "Hyperstack",
+        "tier": "guaranteed",
+        "usd_per_gpu_hour": 3.2,
+        "gpu_count": 1,
+        "billing": "minute",
+        "price_since": "2026-10-05T22:20:52.531Z",
+        "checked_at": "2026-10-06T10:15:59.268Z",
+        "source_url": "https://www.hyperstack.cloud/gpu-pricing"
+      },
+      "cheapest_by_gpu_count": {
+        "1": {
+          "provider": "Hyperstack",
+          "tier": "guaranteed",
+          "usd_per_gpu_hour": 3.2,
+          "gpu_count": 1,
+          "billing": "minute",
+          "price_since": "2026-10-05T22:20:52.531Z",
+          "checked_at": "2026-10-06T10:15:59.268Z",
+          "source_url": "https://www.hyperstack.cloud/gpu-pricing"
+        },
+        "2": {
+          "provider": "Lambda",
+          "tier": "guaranteed",
+          "usd_per_gpu_hour": 4.19,
+          "gpu_count": 2,
+          "price_since": "2026-10-05T22:20:51.232Z",
+          "checked_at": "2026-10-06T10:15:58.151Z",
+          "source_url": "https://lambda.ai/pricing"
+        },
+        "…": "…"
+      },
+      "offers": [
+        {
+          "provider": "Hyperstack",
+          "tier": "guaranteed",
+          "usd_per_gpu_hour": 3.2,
+          "gpu_count": 1,
+          "billing": "minute",
+          "price_since": "2026-10-05T22:20:52.531Z",
+          "checked_at": "2026-10-06T10:15:59.268Z",
+          "source_url": "https://www.hyperstack.cloud/gpu-pricing"
+        },
+        {
+          "provider": "Thunder Compute",
+          "tier": "guaranteed",
+          "usd_per_gpu_hour": 3.2,
+          "gpu_count": 1,
+          "billing": "minute",
+          "price_since": "2026-10-05T16:41:21.815Z",
+          "checked_at": "2026-10-06T10:36:03.247Z",
+          "source_url": "https://www.thundercompute.com/pricing"
+        },
+        "…"
+      ],
+      "offers_total": 14
+    },
+    "community": {
+      "cheapest": {
+        "provider": "RunPod",
+        "tier": "community",
+        "usd_per_gpu_hour": 2.69,
+        "gpu_count": 1,
+        "price_since": "2026-10-05T22:20:50.100Z",
+        "checked_at": "2026-10-06T10:15:56.970Z",
+        "source_url": "https://www.runpod.io/pricing"
+      },
+      "cheapest_by_gpu_count": {
+        "1": {
+          "provider": "RunPod",
+          "tier": "community",
+          "usd_per_gpu_hour": 2.69,
+          "gpu_count": 1,
+          "price_since": "2026-10-05T22:20:50.100Z",
+          "checked_at": "2026-10-06T10:15:56.970Z",
+          "source_url": "https://www.runpod.io/pricing"
+        }
+      },
+      "offers": [
+        {
+          "provider": "RunPod",
+          "tier": "community",
+          "usd_per_gpu_hour": 2.69,
+          "gpu_count": 1,
+          "price_since": "2026-10-05T22:20:50.100Z",
+          "checked_at": "2026-10-06T10:15:56.970Z",
+          "source_url": "https://www.runpod.io/pricing"
+        }
+      ],
+      "offers_total": 1
+    },
+    "spot": {
+      "cheapest": {
+        "provider": "Verda",
+        "tier": "spot",
+        "usd_per_gpu_hour": 1.89,
+        "gpu_count": 1,
+        "price_since": "2026-10-05T16:41:20.528Z",
+        "checked_at": "2026-10-06T10:36:02.227Z",
+        "source_url": "https://verda.com/pricing"
+      },
+      "cheapest_by_gpu_count": {
+        "1": {
+          "provider": "Verda",
+          "tier": "spot",
+          "usd_per_gpu_hour": 1.89,
+          "gpu_count": 1,
+          "price_since": "2026-10-05T16:41:20.528Z",
+          "checked_at": "2026-10-06T10:36:02.227Z",
+          "source_url": "https://verda.com/pricing"
+        },
+        "8": {
+          "provider": "CoreWeave",
+          "tier": "spot",
+          "usd_per_gpu_hour": 2.4388,
+          "gpu_count": 8,
+          "region": "europe",
+          "price_since": "2026-10-05T22:20:53.841Z",
+          "checked_at": "2026-10-06T10:16:00.300Z",
+          "source_url": "https://www.coreweave.com/pricing"
+        }
+      },
+      "offers": [
+        {
+          "provider": "Verda",
+          "tier": "spot",
+          "usd_per_gpu_hour": 1.89,
+          "gpu_count": 1,
+          "price_since": "2026-10-05T16:41:20.528Z",
+          "checked_at": "2026-10-06T10:36:02.227Z",
+          "source_url": "https://verda.com/pricing"
+        },
+        {
+          "provider": "CoreWeave",
+          "tier": "spot",
+          "usd_per_gpu_hour": 2.4388,
+          "gpu_count": 8,
+          "region": "europe",
+          "price_since": "2026-10-05T22:20:53.841Z",
+          "checked_at": "2026-10-06T10:16:00.300Z",
+          "source_url": "https://www.coreweave.com/pricing"
+        },
+        "…"
+      ],
+      "offers_total": 3
+    }
+  },
+  "note": "…",
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+### MCP
+
+The MCP server has two tools for these routes: `list_gpus` (same as `/gpus`) and `gpu_rentals` (same parameters as `/gpu-rentals`, plus `detail`: `compact`, the default, returns the 3 cheapest offers of each tier; `full` returns up to 50).
+
+## Self-host or API
+
+`GET /self-host?model=<id>` answers: is it cheaper to host this open-weights model yourself on rented GPUs, or to use the cheapest API offer? The answer is an estimate, with hardware rental only (no deployment, monitoring, redundancy, storage or network costs). How it is built, level of evidence by level of evidence: [How the answer is built](self-host.md).
+
+```
+GET https://api.inferindex.dev/self-host?model=qwen/qwen3-32b&tokens_per_day=50000000
+```
+
+Parameters:
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `model` | required | Id from `/models`. A model not in the catalogue returns a 404 with suggestions. |
+| `tokens_per_day` | none | Your volume, input and output together. Or `requests_per_day` with `prompt_tokens` and `output_tokens` (not both). Without a volume you still get the verdict and the break-even volume. |
+| `utilization` | 50 | 1 to 100: percent of the time the GPUs serve requests. |
+| `tokens_per_second` | none | Your own measured throughput for the whole configuration, input and output tokens together, instead of our estimate. 1 to 1,000,000. |
+| `weights_margin` | 70 | 50 to 95, whole percent of the GPU memory the model weights may fill; the rest is the engine's reserve and the context cache. |
+| `gpu`, `gpu_count` | none | Impose a card (id from `/gpus`) and/or a number of GPUs (1, 2, 4, 8 or 16). |
+| `quantization` | `fp8` | `fp16`, `bf16`, `fp8`, `int8`, `fp4`, `int4`. Must be published by at least one provider unless `fp16` or `bf16`. |
+| `tier` | `guaranteed` | `guaranteed`, `community` or `spot`. Tiers are never compared with each other. |
+| `detail` | `full` | `compact`: verdict, headline and key numbers. `full`: also the model, the three throughput scenarios and every assumption. (The MCP tool defaults to `compact`.) |
+
+A parameter out of range returns a 400 with the name of the parameter.
+
+### Response
+
+Fields in **both** views (`detail=compact` and `detail=full`):
+
+| Field | Meaning |
+|---|---|
+| `status` | `ok`, or `refused` (below). |
+| `verdict` | `api_cheaper`, `self_host_cheaper_above`, `self_host_above_utilization` or `self_host_needs_throughput`. |
+| `headline` | The answer in one sentence. When the evidence is not enough, it gives the break-even volume and the throughput required rather than "it depends". |
+| `headline_kind` | Which sentence the headline is, as a stable value, so that a client can compose its own wording or a translation from fields instead of parsing the English sentence. One of the 16 kinds listed in [How the answer is built](self-host.md#the-headline-as-fields). Kinds may be added: a client that does not know a kind should show `headline`. |
+| `headline_values` | Every value the headline quotes, rounded as the sentence quotes it; only the keys the sentence uses are present. Units: keys ending in `_tps` are tokens per second (`floor_output_tps` counts output tokens, the others input and output together); `volume_m`, `break_even_m` and `usable_capacity_m_low`/`_high` are million tokens a day; `api_usd_per_m` and `self_hosted_usd_per_m_low`/`_high` are USD per million tokens; keys ending in `_percent` are percent. Thousands and decimal separators are left to the client. Also: `prefix`, `at_break_even`, `mix` (`default_3_1` or `caller`), `request_length` (`not_given` or `within_benchmark`), `api_provider`, `gpu_name`, and the optional parts `floor_note` and `comparison` described in the page above. `gpu_name` and `api_provider` come from third-party pages: escape them before display. |
+| `confidence` | How the throughput was obtained: `measured`, `derived`, `estimated`, `lower_bound`, `user_supplied`, `none` (unknown: no throughput is known for this configuration and the verdict would need one) or `not_needed` (the verdict does not rest on any throughput). See [How the answer is built](self-host.md#2-levels-of-evidence). |
+| `threshold_m_tokens_per_day` | Break-even volume in million tokens a day: daily cost of the GPU configuration divided by the API price per million tokens. `null` when the API offer is free (`threshold_note` says so). |
+| `required_tokens_per_second` | Minimum throughput, in input plus output tokens per second, that the whole configuration (all GPUs together) must deliver while serving for self-hosting to cost less than the API: `at_full_utilization` if it were busy all the time, `at_utilization` at `utilization_percent`. With a volume, `for_your_volume` gives the same two figures for serving that volume itself. `null` when the API offer is free. |
+| `break_even_utilization_percent` | Per scenario (prudent, median, optimistic): the average utilization above which self-hosting costs less, whatever the number of GPUs. Above 100 means never at that throughput. `null` when there are no scenarios: no throughput is known at all (`confidence` `none`), the verdict needs none (`not_needed`), or only a published minimum exists. When the API offer is free and scenarios exist, it is an object whose three values are `null`: there is no break-even. Absent from a refusal. |
+| `utilization_percent` | The utilization used. |
+| `api` | The API offer compared: `provider`, `usd_per_m_tokens`, `checked_at`, `offers_compared`, `mix`, `basis` ("cheapest of N current standard offers…, promotions and unstable prices excluded"). |
+| `configuration` | The GPU configuration. **Compact view:** `gpu`, `gpus`, `provider`, `tier`, `usd_per_hour`. **Full view:** `vendor`, `gpu_id`, `gpu_name`, `gpus_needed`, `gpus_billed`, `provider`, `region`, `tier`, hourly, per-GPU and daily prices, `vram_total_gb`, `weights_share`, `checked_at`, `source_url`, `throughput_evidence` (what is known about the throughput of this configuration; it can differ from `confidence`, which says what the verdict rests on), `engine_note` when we have no throughput for this model on this card, and, when we picked a configuration that is not the cheapest, `cheapest_alternative` and `selection_reason`. |
+| `fetched_at` | When the answer was built. |
+| `settled_alternative` | Present only when the configuration the answer is about has no verdict that published figures can decide (`self_host_needs_throughput`) and a dearer rented configuration has one: the cheapest such setup (card, number of GPUs, provider, tier, hourly and daily price with `checked_at` and `source_url`), its `verdict` (`self_host_cheaper_above`, or `self_host_above_utilization` with `busy_at_least_percent`, the share of the time it must be busy: for a measured value the break-even utilization of the prudent scenario, for a published minimum a utilization at which the floor is enough), the `confidence` it rests on (`measured` or `lower_bound`) and its break-even volume. It is another, dearer setup, shown for comparison; it is not a recommendation and it is never used in place of the configuration the answer is about. The verdict summarises the prudent case: asking for that configuration directly can return `self_host_needs_throughput`. An alternative resting on a published minimum holds for requests of up to 2,048 tokens in total. With a volume, it is shown only if that setup is cheaper at your volume and can serve it; the "busy at least" form exists only without a volume. Absent when you impose a card (`gpu`) or give `tokens_per_second`; with `gpu_count` alone, only configurations of that size are considered. |
+
+Only in the **compact** view:
+
+| Field | Meaning |
+|---|---|
+| `weights_margin_percent` | The weights margin used. |
+| `note` | "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately." |
+
+Only in the **full** view:
+
+| Field | Meaning |
+|---|---|
+| `model` | `id`, `name`, `params_b`, `kind` (`dense`, `moe` or `unknown`), `active_params_b`, `weights_gb`, `quantization`. |
+| `weights_margin` | `used_percent`, `default_percent` and an `explanation`. |
+| `throughput` | For a published minimum (`status: "lower_bound"`): `published_output_tokens_per_second`, `at_least_tokens_per_second`, `sufficient_utilization_percent`, `conversion`, `source` ("InferenceX (SemiAnalysis)"), `engine` (`vllm`, `sglang`, `trtllm`, `other` or `null`), `reference.source_url`, and `other_engine_ceiling` (`engine`, `output_tokens_per_second`) when another series on the same configuration (another engine, another run of the same engine, or an engine we cannot name) levelled off (our reading) at a lower figure: that is the ceiling observed for that series, not the capacity of the configuration, and it is not used; `engine` has the same possible values there. Otherwise the method and the reference behind the estimate, or `status: "unavailable"` with a `reason`. |
+| `scenarios` | Prudent, median, optimistic: throughput, capacity, break-even utilization, cost per million tokens, and (with a volume) what happens at your volume. `null` without a throughput estimate. |
+| `volume_m_tokens_per_day` | Your volume in million tokens a day, `null` without one. |
+| `assumptions` | Every assumption in words, including the hardware-rental sentence above. |
+
+### Refusals
+
+We decline to give a number rather than an unreliable one. A refusal is a 200 response: `status: "refused"`, `verdict: null`, a `reason`, a `message` and a `detail`.
+`reason` is one of `model_closed_or_unsized`, `quantization_not_published`, `unknown_gpu`, `gpu_not_rented`, `weights_exceed_margin`, `no_rental_configuration`, `gpu_memory_unknown`, `no_api_price`; the meaning of each is in [How the answer is built](self-host.md#5-when-we-decline-to-answer).
+
+### Examples
+
+No throughput is known for this model on the cheapest configuration: the answer gives the break-even volume and the throughput to compare with.
+
+```bash
+curl "https://api.inferindex.dev/self-host?model=qwen/qwen3.8-27b&detail=compact"
+```
+
+_Example response as of 2026-10-06 — prices, providers and statuses change._
+
+```json
+{
+  "status": "ok",
+  "verdict": "self_host_needs_throughput",
+  "headline": "The API is cheaper below 57 million tokens a day. Above that, self-hosting wins only if the whole configuration (all GPUs together) delivers at least 1,319 tokens per second, input and output together, while serving at 50% utilization (660 if it were busy all the time).",
+  "headline_kind": "break_even_and_required_throughput",
+  "headline_values": {
+    "prefix": null,
+    "break_even_m": 57,
+    "required_tps_at_utilization": 1319,
+    "utilization_percent": 50,
+    "required_tps_if_always_busy": 660
+  },
+  "confidence": "none",
+  "threshold_m_tokens_per_day": 56.95,
+  "required_tokens_per_second": {
+    "at_full_utilization": 659.2,
+    "at_utilization": 1318.3,
+    "utilization_percent": 50
+  },
+  "break_even_utilization_percent": null,
+  "utilization_percent": 50,
+  "api": {
+    "provider": "Consensusprotocol",
+    "usd_per_m_tokens": 0.1475,
+    "checked_at": "2026-10-06T11:21:25.933Z",
+    "offers_compared": 56,
+    "mix": {
+      "source": "default_3_1",
+      "input_share_percent": 75
+    },
+    "basis": "cheapest of 56 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+  },
+  "configuration": {
+    "gpu": "RTX A6000 48GB",
+    "gpus": 1,
+    "provider": "Thunder Compute",
+    "tier": "guaranteed",
+    "usd_per_hour": 0.35
+  },
+  "weights_margin_percent": 70,
+  "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+A published minimum settles it (a configuration is imposed here):
+
+```bash
+curl "https://api.inferindex.dev/self-host?model=minimax/minimax-m2.5&gpu=b200-sxm-180gb&gpu_count=4&detail=compact"
+```
+
+_Example response as of 2026-10-06 — prices, providers and statuses change._
+
+```json
+{
+  "status": "ok",
+  "verdict": "self_host_cheaper_above",
+  "headline": "Self-hosting is cheaper above 1,671 million tokens a day at 50% utilization (API $0.39/M at a 3:1 input:output mix): the InferenceX benchmark (SemiAnalysis) gives at least 20,417 output tokens per second on this setup, which we convert to at least 40,835 tokens per second, input and output together, for a 3:1 input:output mix; this floor holds for requests of up to 2,048 tokens in total (the benchmark used 1,024 prompt tokens and 1,024 answer tokens).",
+  "headline_kind": "published_minimum_settles",
+  "headline_values": {
+    "prefix": null,
+    "utilization_percent": 50,
+    "break_even_m": 1671,
+    "api_usd_per_m": 0.39,
+    "mix": "default_3_1",
+    "floor_output_tps": 20417,
+    "floor_total_tps": 40835,
+    "request_length": "not_given"
+  },
+  "confidence": "lower_bound",
+  "threshold_m_tokens_per_day": 1671.38,
+  "required_tokens_per_second": {
+    "at_full_utilization": 19344.8,
+    "at_utilization": 38689.5,
+    "utilization_percent": 50
+  },
+  "break_even_utilization_percent": null,
+  "utilization_percent": 50,
+  "api": {
+    "provider": "Glama",
+    "usd_per_m_tokens": 0.39,
+    "checked_at": "2026-10-06T10:52:24.527Z",
+    "offers_compared": 45,
+    "mix": {
+      "source": "default_3_1",
+      "input_share_percent": 75
+    },
+    "basis": "cheapest of 45 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+  },
+  "configuration": {
+    "gpu": "B200 SXM 180GB",
+    "gpus": 4,
+    "provider": "Lambda",
+    "tier": "guaranteed",
+    "usd_per_hour": 27.16
+  },
+  "weights_margin_percent": 70,
+  "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+Without an imposed card, a dearer setup that published figures decide can be pointed out for comparison (`settled_alternative`, and the last sentence of the headline):
+
+```bash
+curl "https://api.inferindex.dev/self-host?model=minimax/minimax-m2.5&detail=compact"
+```
+
+_Example response as of 2026-10-06 — prices, providers and statuses change._
+
+```json
+{
+  "status": "ok",
+  "verdict": "self_host_needs_throughput",
+  "headline": "The API is cheaper below 615 million tokens a day. Above that, self-hosting wins only if the whole configuration (all GPUs together) delivers at least 14,246 tokens per second, input and output together, while serving at 50% utilization (7,123 if it were busy all the time). For comparison, published figures decide it for a dearer setup: 4x B200 SXM 180GB at $652 a day, self-hosting cheaper above 1,671 million tokens a day (published minimum, for requests of up to 2,048 tokens in total).",
+  "headline_kind": "break_even_and_required_throughput",
+  "headline_values": {
+    "prefix": null,
+    "break_even_m": 615,
+    "required_tps_at_utilization": 14246,
+    "utilization_percent": 50,
+    "required_tps_if_always_busy": 7123,
+    "comparison": {
+      "gpus": 4,
+      "gpu_name": "B200 SXM 180GB",
+      "usd_per_day": 652,
+      "break_even_m": 1671,
+      "busy_at_least_percent": null,
+      "evidence": "published_minimum",
+      "request_length": "not_given"
+    }
+  },
+  "confidence": "none",
+  "threshold_m_tokens_per_day": 615.38,
+  "required_tokens_per_second": {
+    "at_full_utilization": 7122.6,
+    "at_utilization": 14245.1,
+    "utilization_percent": 50
+  },
+  "settled_alternative": {
+    "gpu_id": "b200-sxm-180gb",
+    "gpu_name": "B200 SXM 180GB",
+    "gpus": 4,
+    "provider": "Lambda",
+    "tier": "guaranteed",
+    "usd_per_hour": 27.16,
+    "usd_per_day": 651.84,
+    "verdict": "self_host_cheaper_above",
+    "confidence": "lower_bound",
+    "threshold_m_tokens_per_day": 1671.38,
+    "busy_at_least_percent": null,
+    "checked_at": "2026-10-06T10:15:58.151Z",
+    "source_url": "https://lambda.ai/pricing"
+  },
+  "break_even_utilization_percent": null,
+  "utilization_percent": 50,
+  "api": {
+    "provider": "Glama",
+    "usd_per_m_tokens": 0.39,
+    "checked_at": "2026-10-06T10:52:24.527Z",
+    "offers_compared": 45,
+    "mix": {
+      "source": "default_3_1",
+      "input_share_percent": 75
+    },
+    "basis": "cheapest of 45 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+  },
+  "configuration": {
+    "gpu": "L40 48GB",
+    "gpus": 8,
+    "provider": "CoreWeave",
+    "tier": "guaranteed",
+    "usd_per_hour": 10
+  },
+  "weights_margin_percent": 70,
+  "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+A refusal:
+
+```bash
+curl "https://api.inferindex.dev/self-host?model=google/gemma-4-31b-it&gpu=rtx-4090-24gb&quantization=fp16"
+```
+
+_Example response as of 2026-10-06 — prices, providers and statuses change._
+
+```json
+{
+  "status": "refused",
+  "verdict": null,
+  "reason": "weights_exceed_margin",
+  "message": "The weights (62.6 GB in fp16) do not fit within 70% of the memory of the requested configuration.",
+  "detail": {
+    "weights_gb": 62.55,
+    "quantization": "fp16",
+    "memory_needed_gb": 89.4,
+    "memory_available_gb": 24,
+    "weights_margin_percent": 70,
+    "smallest_configuration_that_fits": {
+      "gpu_id": "rtx-pro-6000-96gb",
+      "gpu_name": "RTX PRO 6000 96GB",
+      "gpus": 1,
+      "provider": "Nebius",
+      "usd_per_hour": 1.8,
+      "tier": "guaranteed"
+    }
+  },
+  "fetched_at": "2026-10-06T12:37:31.000Z"
+}
+```
+
+### MCP
+
+The MCP server exposes the same answer as the tool `self_host_or_api` (same parameters, `detail` defaults to `compact`).
+
+### Related routes
+
+`/gpus` lists the GPU cards we know (the ids for the `gpu` parameter); `/gpu-rentals` lists the rental prices behind the configurations. Both are described in [GPU rental prices](#gpu-rental-prices).
 
 ## `GET /health/live`
 
