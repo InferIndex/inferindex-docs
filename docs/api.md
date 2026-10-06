@@ -931,7 +931,7 @@ GET https://api.inferindex.dev/gpu-rentals?gpu=h100-sxm-80gb
 - `billing` (`second`, `minute` or `hour`) and `region` are left out when the provider does not publish them; we never fill them in.
 - An offer that was not re-checked for more than three times the reading interval of its source (at least six hours: about 18 hours today) is marked `"stale": true`. It stays listed, after the fresh offers, and is never the cheapest.
 - Each provider's price list is read every six hours, and each offer carries `checked_at`. Answers are cached for up to 30 minutes (`Cache-Control: public, max-age=1800`); `fetched_at` says when the answer was built.
-- The same per-IP limit applies as to the other routes (60 requests a minute without a key); on these two routes it is enforced approximately, and cached answers are not counted.
+- The same per-IP limit applies as to the other routes (60 requests a minute without a key); cached answers are not counted.
 
 ### `GET /gpus`
 
