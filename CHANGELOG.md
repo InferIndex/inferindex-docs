@@ -2,6 +2,14 @@
 
 Changes to the public data and documentation that API users should know about. Dates and times are UTC.
 
+## New routes
+
+### 2026-10-06 — Self-host or API, and GPU rental prices
+
+- `GET /self-host` (and the MCP tool `self_host_or_api`): is it cheaper to rent GPUs and run an open-weights model yourself, or to use the cheapest API offer? An estimate, hardware rental only. How the answer is built: [docs/self-host.md](docs/self-host.md).
+- `GET /gpus` and `GET /gpu-rentals` (and the MCP tools `list_gpus` and `gpu_rentals`): rental prices of GPUs by the hour, one block per tier, never compared across tiers.
+- The three routes share the per-IP rate limit of `/cheapest`, `/history` and `/resellers`.
+
 ## Data corrections
 
 ### 2026-09-26 — qwen/qwen3.8-omni-flash, Alibaba Cloud list price (output)
