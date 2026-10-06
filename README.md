@@ -112,6 +112,9 @@ not as a guarantee of what you will be billed:
 | `GET /resellers?model=deepseek/deepseek-v3.2` | Current prices across every reseller (direct and via aggregators), one line per source, paginated beyond 100 offers |
 | `GET /history?model=deepseek/deepseek-v3.2&days=30&granularity=day` | Price history, paginated by cursor |
 | `GET /models?search=deepseek` | Search tracked models |
+| `GET /gpus` | GPU types tracked for rental prices, with the lowest price of each tier — see [GPU rental prices](docs/api.md#gpu-rental-prices) |
+| `GET /gpu-rentals?gpu=h100-sxm-80gb` | Rental offers for one GPU, one block per tier — see [GPU rental prices](docs/api.md#gpu-rental-prices) |
+| `GET /self-host?model=qwen/qwen3-32b&tokens_per_day=50000000` | Is it cheaper to rent GPUs and run an open-weights model yourself, or to use the cheapest API offer? An estimate, hardware rental only — see [how the answer is built](docs/self-host.md) |
 | `GET /trending` | Up to 10 models currently getting attention, recomputed about every 6 hours |
 | `GET /index?series=market` | Weekly market index, published every Monday since 2026-10-05 — see the [methodology](docs/market-index.md) |
 | `GET /health/live` | Liveness only: the service is up, no database access |
@@ -210,6 +213,9 @@ look up prices for you:
 | `compare_providers(model, sort, limit, …)` | Every offer, one line per provider, with usage conditions and reliability |
 | `price_history(model, days \| from + to \| at, granularity, provider, limit)` | Offer price history, plus the lab's official prices |
 | `estimate_cost(model, prompt_tokens, output_tokens, cached_ratio, requests_per_day)` | Estimated cost per request and per month, sorted |
+| `list_gpus()` | GPU types tracked for rental prices, with the lowest price of each tier |
+| `gpu_rentals(gpu, tier, gpu_count, region, detail)` | Rental offers for one GPU, one block per tier |
+| `self_host_or_api(model, tokens_per_day, utilization, …)` | Self-host an open-weights model on rented GPUs, or use the cheapest API offer? Hardware rental only, see [how the answer is built](docs/self-host.md) |
 
 Every result includes `api_url`, the equivalent API call, so you can check or reuse it.
 

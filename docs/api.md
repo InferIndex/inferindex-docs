@@ -909,6 +909,147 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 `count` is the total number of matches; `models` is capped at 50 even if `count` is higher. Only real models are
 listed — see [Model identifiers](#model-identifiers).
 
+## GPU rental prices
+
+Two routes list what it costs to rent a GPU by the hour, as the providers we track publish it. They are the prices behind [Self-host or API](#self-host-or-api).
+
+| Route | What it returns |
+|---|---|
+| `GET /gpus` | The GPU types we track, with the lowest price of each tier and how many providers offer it. |
+| `GET /gpu-rentals?gpu=<id>` | The rental offers for one GPU, one block per tier, each with its own cheapest offer. |
+
+```
+GET https://api.inferindex.dev/gpus
+GET https://api.inferindex.dev/gpu-rentals?gpu=h100-sxm-80gb
+```
+
+### How to read the prices
+
+- Prices are in **USD per GPU per hour**, as each provider publishes them on its public price list, and **dated**: `price_since` (when we first saw this price) and `checked_at` (when we last confirmed it).
+- **Tiers are never compared with each other.** `guaranteed` is on-demand capacity the provider presents as not interrupted (it is not a long-term reservation, and we do not verify availability); `community` is capacity from third-party hosts; `spot` is interruptible capacity the provider can reclaim. Each tier has its own cheapest offer; there is no winner across tiers, because they are different products.
+- **The price per GPU depends on the configuration.** A single GPU and a multi-GPU node of the same provider can have different prices per GPU, so compare offers with the same `gpu_count`. Each tier gives its cheapest offer per configuration in `cheapest_by_gpu_count`.
+- `billing` (`second`, `minute` or `hour`) and `region` are left out when the provider does not publish them; we never fill them in.
+- An offer whose provider's price list could not be re-checked recently is marked `"stale": true`: it is listed last and is never the cheapest.
+- `fetched_at` says when the answer was built.
+
+### `GET /gpus`
+
+No parameters. Response:
+
+| Field | Meaning |
+|---|---|
+| `gpus` | One entry per GPU type: `id` (use it in `/gpu-rentals` and as `gpu` in `/self-host`), `name`, `family`, `form` (SXM, PCIe… or `null`), `vram_gb` (or `null`), and `cheapest`. |
+| `gpus[].cheapest` | For each tier that has a fresh offer: `usd_per_gpu_hour`, `provider`, `gpu_count` (the configuration of that offer) and `providers` (how many providers offer the tier). A tier without a fresh offer is absent. |
+| `total` | Number of GPU types. |
+| `note` | The rules above in one paragraph. |
+| `fetched_at` | When the answer was built. |
+
+### `GET /gpu-rentals`
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `gpu` | required | A GPU id from `/gpus`, for example `h100-sxm-80gb`. |
+| `tier` | all three | `guaranteed`, `community` or `spot`: only this tier. |
+| `gpu_count` | all | `1`, `2`, `4`, `8` or `16`: only this published configuration. |
+| `region` | all | Only this region, as published by the provider. An unknown region returns a 400 that lists the regions we have. |
+| `limit` | 10 | 1 to 50 offers per tier. |
+
+Response:
+
+| Field | Meaning |
+|---|---|
+| `gpu` | The GPU: `id`, `name`, `family`, `form`, `vram_gb`. |
+| `tiers` | One block per tier (`guaranteed`, `community`, `spot`, or only the one you asked for). |
+| `tiers.<tier>.cheapest` | The cheapest fresh offer of the tier, or `null`. |
+| `tiers.<tier>.cheapest_by_gpu_count` | The cheapest fresh offer for each published configuration, keyed by `gpu_count`. |
+| `tiers.<tier>.offers` | Up to `limit` offers, fresh ones first, then stale ones, each by increasing price. |
+| `tiers.<tier>.offers_total` | How many offers the tier has before `limit`. |
+| `note`, `fetched_at` | As above. |
+
+An offer has: `provider`, `tier`, `usd_per_gpu_hour`, `gpu_count`, `billing` and `region` when published, `price_since`, `checked_at`, `source_url` (the provider's public price page, when there is one) and `stale` when it applies.
+
+Errors: a missing or malformed `gpu`, a `tier`, `gpu_count` or `limit` out of range returns a 400 that names the problem; a GPU we do not know, or one with no open offer, returns a 404 ("see /gpus").
+
+### MCP
+
+The MCP server has two tools for these routes: `list_gpus` (same as `/gpus`) and `gpu_rentals` (same parameters as `/gpu-rentals`, plus `detail`: `compact`, the default, returns the 3 cheapest offers of each tier; `full` returns up to 50).
+
+## Self-host or API
+
+`GET /self-host?model=<id>` answers: is it cheaper to host this open-weights model yourself on rented GPUs, or to use the cheapest API offer? The answer is an estimate, with hardware rental only (no deployment, monitoring, redundancy, storage or network costs). How it is built, level of evidence by level of evidence: [How the answer is built](self-host.md).
+
+```
+GET https://api.inferindex.dev/self-host?model=qwen/qwen3-32b&tokens_per_day=50000000
+```
+
+Parameters:
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `model` | required | Id from `/models`. A model not in the catalogue returns a 404 with suggestions. |
+| `tokens_per_day` | none | Your volume, input and output together. Or `requests_per_day` with `prompt_tokens` and `output_tokens` (not both). Without a volume you still get the verdict and the break-even volume. |
+| `utilization` | 50 | 1 to 100: percent of the time the GPUs serve requests. |
+| `tokens_per_second` | none | Your own measured throughput for the whole configuration, input and output tokens together, instead of our estimate. 1 to 1,000,000. |
+| `weights_margin` | 70 | 50 to 95, whole percent of the GPU memory the model weights may fill; the rest is the engine's reserve and the context cache. |
+| `gpu`, `gpu_count` | none | Impose a card (id from `/gpus`) and/or a number of GPUs (1, 2, 4, 8 or 16). |
+| `quantization` | `fp8` | `fp16`, `bf16`, `fp8`, `int8`, `fp4`, `int4`. Must be published by at least one provider unless `fp16` or `bf16`. |
+| `tier` | `guaranteed` | `guaranteed`, `community` or `spot`. Tiers are never compared with each other. |
+| `detail` | `full` | `compact`: verdict, headline and key numbers. `full`: also the model, the three throughput scenarios and every assumption. (The MCP tool defaults to `compact`.) |
+
+A parameter out of range returns a 400 with the name of the parameter.
+
+### Response
+
+Fields in **both** views (`detail=compact` and `detail=full`):
+
+| Field | Meaning |
+|---|---|
+| `status` | `ok`, or `refused` (below). |
+| `verdict` | `api_cheaper`, `self_host_cheaper_above`, `self_host_above_utilization` or `self_host_needs_throughput`. |
+| `headline` | The answer in one sentence. When the evidence is not enough, it gives the break-even volume and the throughput required rather than "it depends". |
+| `headline_kind` | Which sentence the headline is, as a stable value, so that a client can compose its own wording or a translation from fields instead of parsing the English sentence. One of the 16 kinds listed in [How the answer is built](self-host.md#the-headline-as-fields). Kinds may be added: a client that does not know a kind should show `headline`. |
+| `headline_values` | Every value the headline quotes, rounded as the sentence quotes it; only the keys the sentence uses are present. Units: keys ending in `_tps` are tokens per second (`floor_output_tps` counts output tokens, the others input and output together); `volume_m`, `break_even_m` and `usable_capacity_m_low`/`_high` are million tokens a day; `api_usd_per_m` and `self_hosted_usd_per_m_low`/`_high` are USD per million tokens; keys ending in `_percent` are percent. Thousands and decimal separators are left to the client. Also: `prefix`, `at_break_even`, `mix` (`default_3_1` or `caller`), `request_length` (`not_given` or `within_benchmark`), `api_provider`, `gpu_name`, and the optional parts `floor_note` and `comparison` described in the page above. `gpu_name` and `api_provider` come from third-party pages: escape them before display. |
+| `confidence` | How the throughput was obtained: `measured`, `derived`, `estimated`, `lower_bound`, `user_supplied`, `none` (unknown: no throughput is known for this configuration and the verdict would need one) or `not_needed` (the verdict does not rest on any throughput). See [How the answer is built](self-host.md#2-levels-of-evidence). |
+| `threshold_m_tokens_per_day` | Break-even volume in million tokens a day: daily cost of the GPU configuration divided by the API price per million tokens. `null` when the API offer is free (`threshold_note` says so). |
+| `required_tokens_per_second` | Minimum throughput, in input plus output tokens per second, that the whole configuration (all GPUs together) must deliver while serving for self-hosting to cost less than the API: `at_full_utilization` if it were busy all the time, `at_utilization` at `utilization_percent`. With a volume, `for_your_volume` gives the same two figures for serving that volume itself. `null` when the API offer is free. |
+| `break_even_utilization_percent` | Per scenario (prudent, median, optimistic): the average utilization above which self-hosting costs less, whatever the number of GPUs. Above 100 means never at that throughput. `null` when there are no scenarios: no throughput is known at all (`confidence` `none`), the verdict needs none (`not_needed`), or only a published minimum exists. Absent from a refusal. |
+| `utilization_percent` | The utilization used. |
+| `api` | The API offer compared: `provider`, `usd_per_m_tokens`, `checked_at`, `offers_compared`, `mix`, `basis` ("cheapest of N current standard offers…, promotions and unstable prices excluded"). |
+| `configuration` | The GPU configuration. **Compact view:** `gpu`, `gpus`, `provider`, `tier`, `usd_per_hour`. **Full view:** `vendor`, `gpu_id`, `gpu_name`, `gpus_needed`, `gpus_billed`, `provider`, `region`, `tier`, hourly, per-GPU and daily prices, `vram_total_gb`, `weights_share`, `checked_at`, `source_url`, `throughput_evidence` (what is known about the throughput of this configuration; it can differ from `confidence`, which says what the verdict rests on), `engine_note` when we have no throughput for this model on this card, and, when we picked a configuration that is not the cheapest, `cheapest_alternative` and `selection_reason`. |
+| `fetched_at` | When the answer was built. |
+| `settled_alternative` | Present only when the configuration the answer is about has no verdict that published figures can decide (`self_host_needs_throughput`) and a dearer rented configuration has one: the cheapest such setup (card, number of GPUs, provider, tier, hourly and daily price with `checked_at` and `source_url`), its `verdict` (`self_host_cheaper_above`, or `self_host_above_utilization` with `busy_at_least_percent`, the share of the time it must be busy: for a measured value the break-even utilization of the prudent scenario, for a published minimum a utilization at which the floor is enough), the `confidence` it rests on (`measured` or `lower_bound`) and its break-even volume. It is another, dearer setup, shown for comparison; it is not a recommendation and it is never used in place of the configuration the answer is about. The verdict summarises the prudent case: asking for that configuration directly can return `self_host_needs_throughput`. An alternative resting on a published minimum holds for requests of up to 2,048 tokens in total. With a volume, it is shown only if that setup is cheaper at your volume and can serve it; the "busy at least" form exists only without a volume. Absent when you impose a card (`gpu`) or give `tokens_per_second`; with `gpu_count` alone, only configurations of that size are considered. |
+
+Only in the **compact** view:
+
+| Field | Meaning |
+|---|---|
+| `weights_margin_percent` | The weights margin used. |
+| `note` | "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately." |
+
+Only in the **full** view:
+
+| Field | Meaning |
+|---|---|
+| `model` | `id`, `name`, `params_b`, `kind` (`dense`, `moe` or `unknown`), `active_params_b`, `weights_gb`, `quantization`. |
+| `weights_margin` | `used_percent`, `default_percent` and an `explanation`. |
+| `throughput` | For a published minimum (`status: "lower_bound"`): `published_output_tokens_per_second`, `at_least_tokens_per_second`, `sufficient_utilization_percent`, `conversion`, `source` ("InferenceX (SemiAnalysis)"), `engine` (`vllm`, `sglang`, `trtllm`, `other` or `null`), `reference.source_url`, and `other_engine_ceiling` (`engine`, `output_tokens_per_second`) when another series on the same configuration (another engine, another run of the same engine, or an engine we cannot name) levelled off (our reading) at a lower figure: that is the ceiling observed for that series, not the capacity of the configuration, and it is not used; `engine` has the same possible values there. Otherwise the method and the reference behind the estimate, or `status: "unavailable"` with a `reason`. |
+| `scenarios` | Prudent, median, optimistic: throughput, capacity, break-even utilization, cost per million tokens, and (with a volume) what happens at your volume. `null` without a throughput estimate. |
+| `volume_m_tokens_per_day` | Your volume in million tokens a day, `null` without one. |
+| `assumptions` | Every assumption in words, including the hardware-rental sentence above. |
+
+### Refusals
+
+We decline to give a number rather than an unreliable one. A refusal is a 200 response: `status: "refused"`, `verdict: null`, a `reason`, a `message` and a `detail`.
+`reason` is one of `model_closed_or_unsized`, `quantization_not_published`, `unknown_gpu`, `gpu_not_rented`, `weights_exceed_margin`, `no_rental_configuration`, `gpu_memory_unknown`, `no_api_price`; the meaning of each is in [How the answer is built](self-host.md#5-when-we-decline-to-answer).
+
+### MCP
+
+The MCP server exposes the same answer as the tool `self_host_or_api` (same parameters, `detail` defaults to `compact`).
+
+### Related routes
+
+`/gpus` lists the GPU cards we know (the ids for the `gpu` parameter); `/gpu-rentals` lists the rental prices behind the configurations. Both are described in [GPU rental prices](#gpu-rental-prices).
+
 ## `GET /health/live`
 
 Liveness only: confirms the service is up and returns the deployed version. Does not touch the database —
