@@ -6,7 +6,7 @@ poll faster than that, it won't return fresher data. See the [README](../README.
 behavior and a warning about price reliability before you go further.
 
 This page documents the public read routes only. It is generated from the backend's route table and checked
-against the production API on 2026-09-15.
+against the production API on 2026-09-15; the sections on `/gpus`, `/gpu-rentals` and `/self-host` against it on 2026-10-06.
 
 ## Authentication and rate limits
 
@@ -1034,7 +1034,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
   ],
   "total": 37,
   "note": "…",
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:25.591Z"
 }
 ```
 
@@ -1062,7 +1062,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
         "gpu_count": 1,
         "billing": "minute",
         "price_since": "2026-10-05T22:20:52.531Z",
-        "checked_at": "2026-10-06T10:15:59.268Z",
+        "checked_at": "2026-10-06T16:11:22.216Z",
         "source_url": "https://www.hyperstack.cloud/gpu-pricing"
       },
       "cheapest_by_gpu_count": {
@@ -1073,7 +1073,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "gpu_count": 1,
           "billing": "minute",
           "price_since": "2026-10-05T22:20:52.531Z",
-          "checked_at": "2026-10-06T10:15:59.268Z",
+          "checked_at": "2026-10-06T16:11:22.216Z",
           "source_url": "https://www.hyperstack.cloud/gpu-pricing"
         },
         "2": {
@@ -1082,7 +1082,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "usd_per_gpu_hour": 4.19,
           "gpu_count": 2,
           "price_since": "2026-10-05T22:20:51.232Z",
-          "checked_at": "2026-10-06T10:15:58.151Z",
+          "checked_at": "2026-10-06T16:11:20.868Z",
           "source_url": "https://lambda.ai/pricing"
         },
         "…": "…"
@@ -1095,7 +1095,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "gpu_count": 1,
           "billing": "minute",
           "price_since": "2026-10-05T22:20:52.531Z",
-          "checked_at": "2026-10-06T10:15:59.268Z",
+          "checked_at": "2026-10-06T16:11:22.216Z",
           "source_url": "https://www.hyperstack.cloud/gpu-pricing"
         },
         {
@@ -1119,7 +1119,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
         "usd_per_gpu_hour": 2.69,
         "gpu_count": 1,
         "price_since": "2026-10-05T22:20:50.100Z",
-        "checked_at": "2026-10-06T10:15:56.970Z",
+        "checked_at": "2026-10-06T16:11:19.612Z",
         "source_url": "https://www.runpod.io/pricing"
       },
       "cheapest_by_gpu_count": {
@@ -1129,7 +1129,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "usd_per_gpu_hour": 2.69,
           "gpu_count": 1,
           "price_since": "2026-10-05T22:20:50.100Z",
-          "checked_at": "2026-10-06T10:15:56.970Z",
+          "checked_at": "2026-10-06T16:11:19.612Z",
           "source_url": "https://www.runpod.io/pricing"
         }
       },
@@ -1140,7 +1140,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "usd_per_gpu_hour": 2.69,
           "gpu_count": 1,
           "price_since": "2026-10-05T22:20:50.100Z",
-          "checked_at": "2026-10-06T10:15:56.970Z",
+          "checked_at": "2026-10-06T16:11:19.612Z",
           "source_url": "https://www.runpod.io/pricing"
         }
       ],
@@ -1173,7 +1173,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "gpu_count": 8,
           "region": "europe",
           "price_since": "2026-10-05T22:20:53.841Z",
-          "checked_at": "2026-10-06T10:16:00.300Z",
+          "checked_at": "2026-10-06T16:11:23.447Z",
           "source_url": "https://www.coreweave.com/pricing"
         }
       },
@@ -1194,7 +1194,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
           "gpu_count": 8,
           "region": "europe",
           "price_since": "2026-10-05T22:20:53.841Z",
-          "checked_at": "2026-10-06T10:16:00.300Z",
+          "checked_at": "2026-10-06T16:11:23.447Z",
           "source_url": "https://www.coreweave.com/pricing"
         },
         "…"
@@ -1203,7 +1203,7 @@ _Abridged example response as of 2026-10-06 — prices, providers and statuses c
     }
   },
   "note": "…",
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:36.102Z"
 }
 ```
 
@@ -1314,13 +1314,13 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   "api": {
     "provider": "Consensusprotocol",
     "usd_per_m_tokens": 0.1475,
-    "checked_at": "2026-10-06T11:21:25.933Z",
-    "offers_compared": 56,
+    "checked_at": "2026-10-06T14:21:18.974Z",
+    "offers_compared": 52,
     "mix": {
       "source": "default_3_1",
       "input_share_percent": 75
     },
-    "basis": "cheapest of 56 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+    "basis": "cheapest of 52 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
   },
   "configuration": {
     "gpu": "RTX A6000 48GB",
@@ -1331,7 +1331,7 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   },
   "weights_margin_percent": 70,
   "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:36.740Z"
 }
 ```
 
@@ -1371,13 +1371,13 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   "api": {
     "provider": "Glama",
     "usd_per_m_tokens": 0.39,
-    "checked_at": "2026-10-06T10:52:24.527Z",
-    "offers_compared": 45,
+    "checked_at": "2026-10-06T15:51:18.347Z",
+    "offers_compared": 44,
     "mix": {
       "source": "default_3_1",
       "input_share_percent": 75
     },
-    "basis": "cheapest of 45 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+    "basis": "cheapest of 44 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
   },
   "configuration": {
     "gpu": "B200 SXM 180GB",
@@ -1388,7 +1388,7 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   },
   "weights_margin_percent": 70,
   "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:38.274Z"
 }
 ```
 
@@ -1441,7 +1441,7 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
     "confidence": "lower_bound",
     "threshold_m_tokens_per_day": 1671.38,
     "busy_at_least_percent": null,
-    "checked_at": "2026-10-06T10:15:58.151Z",
+    "checked_at": "2026-10-06T16:11:20.868Z",
     "source_url": "https://lambda.ai/pricing"
   },
   "break_even_utilization_percent": null,
@@ -1449,13 +1449,13 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   "api": {
     "provider": "Glama",
     "usd_per_m_tokens": 0.39,
-    "checked_at": "2026-10-06T10:52:24.527Z",
-    "offers_compared": 45,
+    "checked_at": "2026-10-06T15:51:18.347Z",
+    "offers_compared": 44,
     "mix": {
       "source": "default_3_1",
       "input_share_percent": 75
     },
-    "basis": "cheapest of 45 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
+    "basis": "cheapest of 44 current standard offers for a 3:1 input:output mix (blended), promotions and unstable prices excluded"
   },
   "configuration": {
     "gpu": "L40 48GB",
@@ -1466,7 +1466,7 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
   },
   "weights_margin_percent": 70,
   "note": "Hardware rental only: the hourly price the provider publishes for the machine. It does not count the engineering to deploy and run the model, monitoring, redundancy, start-up time, or storage and network costs billed separately.",
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:39.944Z"
 }
 ```
 
@@ -1499,7 +1499,7 @@ _Example response as of 2026-10-06 — prices, providers and statuses change._
       "tier": "guaranteed"
     }
   },
-  "fetched_at": "2026-10-06T12:37:31.000Z"
+  "fetched_at": "2026-10-06T16:18:41.749Z"
 }
 ```
 
