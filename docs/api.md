@@ -911,7 +911,7 @@ listed — see [Model identifiers](#model-identifiers).
 
 ## GPU rental prices
 
-Two routes list what it costs to rent a GPU by the hour, as the providers we track publish it. They are the prices behind [Self-host or API](#self-host-or-api).
+Two routes list what it costs to rent a GPU by the hour, as the providers we track publish it. They are the prices behind [Self-host or API](#self-host-or-api). Each offer names its provider and links to the provider's public price page.
 
 | Route | What it returns |
 |---|---|
@@ -929,8 +929,9 @@ GET https://api.inferindex.dev/gpu-rentals?gpu=h100-sxm-80gb
 - **Tiers are never compared with each other.** `guaranteed` is on-demand capacity the provider presents as not interrupted (it is not a long-term reservation, and we do not verify availability); `community` is capacity from third-party hosts; `spot` is interruptible capacity the provider can reclaim. Each tier has its own cheapest offer; there is no winner across tiers, because they are different products.
 - **The price per GPU depends on the configuration.** A single GPU and a multi-GPU node of the same provider can have different prices per GPU, so compare offers with the same `gpu_count`. Each tier gives its cheapest offer per configuration in `cheapest_by_gpu_count`.
 - `billing` (`second`, `minute` or `hour`) and `region` are left out when the provider does not publish them; we never fill them in.
-- An offer whose provider's price list could not be re-checked recently is marked `"stale": true`: it is listed last and is never the cheapest.
-- `fetched_at` says when the answer was built.
+- An offer that was not re-checked for more than three times the reading interval of its source (at least six hours: about 18 hours today) is marked `"stale": true`. It stays listed, after the fresh offers, and is never the cheapest.
+- Each provider's price list is read every six hours, and each offer carries `checked_at`. Answers are cached for up to 30 minutes (`Cache-Control: public, max-age=1800`); `fetched_at` says when the answer was built.
+- The same per-IP limit applies as to the other routes (60 requests a minute without a key); on these two routes it is enforced approximately, and cached answers are not counted.
 
 ### `GET /gpus`
 
@@ -939,7 +940,7 @@ No parameters. Response:
 | Field | Meaning |
 |---|---|
 | `gpus` | One entry per GPU type: `id` (use it in `/gpu-rentals` and as `gpu` in `/self-host`), `name`, `family`, `form` (SXM, PCIe… or `null`), `vram_gb` (or `null`), and `cheapest`. |
-| `gpus[].cheapest` | For each tier that has a fresh offer: `usd_per_gpu_hour`, `provider`, `gpu_count` (the configuration of that offer) and `providers` (how many providers offer the tier). A tier without a fresh offer is absent. |
+| `gpus[].cheapest` | For each tier that has a fresh offer: `usd_per_gpu_hour`, `provider`, `gpu_count` (the configuration of that offer) and `providers` (how many distinct providers have a fresh offer for this GPU at this tier, whatever the configuration; not the number of providers at the lowest price). A tier without a fresh offer is absent. `gpu_count` is the configuration of the cheapest offer: it can be a multi-GPU node, which is not comparable with a single GPU (see `cheapest_by_gpu_count` in `/gpu-rentals`). At equal prices, the offer shown is the first by price, then by size of configuration, then by provider name. |
 | `total` | Number of GPU types. |
 | `note` | The rules above in one paragraph. |
 | `fetched_at` | When the answer was built. |
@@ -950,7 +951,7 @@ No parameters. Response:
 |---|---|---|
 | `gpu` | required | A GPU id from `/gpus`, for example `h100-sxm-80gb`. |
 | `tier` | all three | `guaranteed`, `community` or `spot`: only this tier. |
-| `gpu_count` | all | `1`, `2`, `4`, `8` or `16`: only this published configuration. |
+| `gpu_count` | all | `1`, `2`, `4`, `8` or `16`: only this published configuration. As of 6 October 2026 the largest published node has 8 GPUs, so `gpu_count=16` returns a 200 with empty tiers (`cheapest: null`, `offers: []`, `offers_total: 0`). |
 | `region` | all | Only this region, as published by the provider. An unknown region returns a 400 that lists the regions we have. |
 | `limit` | 10 | 1 to 50 offers per tier. |
 
@@ -968,7 +969,7 @@ Response:
 
 An offer has: `provider`, `tier`, `usd_per_gpu_hour`, `gpu_count`, `billing` and `region` when published, `price_since`, `checked_at`, `source_url` (the provider's public price page, when there is one) and `stale` when it applies.
 
-Errors: a missing or malformed `gpu`, a `tier`, `gpu_count` or `limit` out of range returns a 400 that names the problem; a GPU we do not know, or one with no open offer, returns a 404 ("see /gpus").
+Errors: a missing or malformed `gpu` returns a 400; an invalid `tier`, `gpu_count`, `region` or `limit` returns a 400 that says the values allowed; a GPU we do not know, or one with no open offer, returns a 404 ("see /gpus"). `limit` applies to each tier: `offers_total` gives the number of offers the tier has.
 
 ### MCP
 
