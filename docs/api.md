@@ -851,9 +851,11 @@ Response shape (values in `<…>` are placeholders, not published data):
   PowerShell): if both match, the file is exactly the one published. The service never overwrites an archived file.
 - Values are stored at publication and served as published. A published week is only recomputed through an explicit
   correction, listed in `corrections` for the week and series served (empty when there is none). Each entry:
-  `{ "family", "previous_value", "value", "previous_models", "models", "reason", "corrected_at" }`, where
-  `previous_*` are the values before the correction and `value` / `models` those after it (also shown in
-  `families`).
+  `{ "family", "previous_value", "value", "previous_models", "models", "reason", "reason_fr", "reason_fr_at",
+  "corrected_at" }`, where `previous_*` are the values before the correction and `value` / `models` those after it
+  (also shown in `families`). `reason` is written in English. `reason_fr` is its French text and `reason_fr_at` the
+  date it was set (equal to `corrected_at` when it came with the correction); both are `null` when there is no French
+  text.
 
 Both series have been published every Monday since 2026-10-05. An `at` date earlier than the first publication returns
 **404**:
