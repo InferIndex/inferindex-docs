@@ -819,9 +819,12 @@ Response shape (values in `<…>` are placeholders, not published data):
   "published_at": "<Monday>T00:00:00.000Z",
   "method_version": "1.1",
   "unit": "USD per 1M tokens, blended 3:1 (input:output)",
+  "compared_to": null,
   "families": [
-    { "family": "frontier_closed", "value": "<number>", "models": "<n>", "model_ids": ["…"] },
-    { "family": "compact_closed", "value": null, "models": 2, "model_ids": ["…", "…"] }
+    { "family": "frontier_closed", "value": "<number>", "models": "<n>", "model_ids": ["…"],
+      "change_on_same_models_pct": null, "same_models": 0, "models_entered": [], "models_left": [] },
+    { "family": "compact_closed", "value": null, "models": 2, "model_ids": ["…", "…"],
+      "change_on_same_models_pct": null, "same_models": 0, "models_entered": [], "models_left": [] }
   ],
   "available_dates": ["<Monday>", "…"],
   "archives": [
@@ -834,6 +837,11 @@ Response shape (values in `<…>` are placeholders, not published data):
 - `families` lists `frontier_closed`, `compact_closed`, `code`, `open_large`, `open_medium` and `open_small`, in that
   order. `value` is `null` when the family had fewer than 3 models that week; `models` and `model_ids` give the models
   counted, so the value can be recomputed from their reference prices.
+- `compared_to` is the previous publication of the series (`null` for the first one). Each family also gives
+  `change_on_same_models_pct`: the change in %, since the previous publication, of the median of the models counted
+  in both publications, so a model entering or leaving a family does not move the figure. `same_models` is the number
+  of those models (the change is `null` without a previous publication or with fewer than 3 same models), and
+  `models_entered` and `models_left` list the models that entered or left the family.
 - `method_version` is the methodology version used for that publication.
 - `available_dates` lists the published Mondays of the series (up to 52, most recent first).
 - `archives` lists the archived JSON files of the week and series served: the publication itself, and one more file for

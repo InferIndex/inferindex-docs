@@ -1,6 +1,6 @@
 # InferIndex
 
-InferIndex finds the cheapest provider for a given LLM, across 70+ tracked pricing sources — direct provider
+InferIndex finds the cheapest provider for a given LLM, across more than 60 tracked pricing sources — direct provider
 APIs and aggregators/routers — with price history and promotion detection.
 
 **Live API**: https://api.inferindex.dev
@@ -88,7 +88,7 @@ availability; it is not an uptime guarantee.
 ## Why
 
 Provider pricing pages disagree, change without notice, and rarely show what resellers actually charge for
-the same model. InferIndex collects prices directly from 70+ sources on their own schedule (from hourly to daily
+the same model. InferIndex collects prices from more than 60 sources, each read from its own listing on its own schedule (from hourly to daily
 depending on the source), stores every change, and answers "who is cheapest for model X right now" from
 that history — client requests never trigger a live call to a provider.
 

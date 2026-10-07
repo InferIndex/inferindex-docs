@@ -110,6 +110,11 @@ has no value that week** (`value: null`).
 median is robust to extreme cases and easy to check. Every publication lists the models counted in each family, so
 anyone can redo the calculation.
 
+**Change on the same models.** From the second publication, each family also gives the change in %, since the
+previous publication, of the median price of the models counted in both publications: a model entering or leaving a
+family does not move the figure. No change is given when fewer than 3 models are common to both publications. The
+models that entered and left are listed next to it.
+
 ## Limits
 
 - **Not a constant-basket index.** A family's composition changes when a model arrives, disappears, or doesn't
