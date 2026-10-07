@@ -97,7 +97,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `conditions` | Usage conditions from the provider's official documents (data region, retention, training on prompts…), see [Usage conditions](#usage-conditions) |
 | `checked_at` | Last time the offer's price was confirmed at its source. For a price that doesn't change, it is refreshed at most every 2 hours, so it can lag by up to 2 hours plus the source's collection interval |
 | `stale` | `true` when the offer hasn't been re-checked for more than 3 × its source's collection interval (6 hours minimum): its price may be out of date. Stale offers are hidden from `/cheapest` (unless `include_stale=true`) and listed last in `/resellers` |
-| `via_name` | Readable name of the aggregator the offer goes through, when it is disclosed (e.g. `"Eden AI"` for `via: "edenai"`); `null` for direct offers and for aggregators that aren't identified by name |
+| `via_name` | Readable name of the aggregator or reseller the offer goes through (e.g. `"OpenRouter"` for `via: "openrouter"`, `"Eden AI"` for `via: "edenai"`); `null` for direct offers and for offers whose `via` is `"aggregator"` (a lab's model sold by another provider, see `via`) |
 | `offer_url` | The public page of the seller of the offer, where it can be checked. The seller is the named aggregator (`via_name`) when the offer is sold through one, otherwise the provider. Either the seller's pricing page or, when `offer_url_kind` is `offer`, the seller's own page for this model, formed from the seller's page pattern and its own identifier for the model and checked before publication. Never formed from our identifiers. `null` when no reliable public page is known |
 | `offer_url_kind` | What `offer_url` leads to: `pricing` (the seller's pricing or model-list page, not this offer alone) or `offer` (the seller's own page for this model); `null` without `offer_url`. An address is `offer` only after the page was checked (it answers, without a redirect to the home page or to a list), and it is checked again every 7 days; when it stops answering, the offer goes back to the seller's pricing page and `pricing`. A page can change between two checks: treat any other value as `pricing`. As of 2026-10-07, `offer` addresses exist for six sellers (LLM Gateway, NanoGPT, Kilo Gateway, RedPill, Requesty, Vercel AI Gateway); every other address is `pricing`, and more become `offer` as pages are checked |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
@@ -240,8 +240,9 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 }
 ```
 
-- `via`: `"direct"` when the provider publishes the price itself, `"aggregator"` for an aggregator that isn't
-  identified by name, otherwise the id of the aggregator/router. `also_via` uses the same values.
+- `via`: `"direct"` when the provider publishes the price itself; otherwise the id of the aggregator or router selling the
+  offer (e.g. `"openrouter"`, `"nous"`). It is `"aggregator"` when the model was made by a lab and is sold by another
+  provider, with no aggregator in between (the seller is then the provider named in `provider`). `also_via` uses the same values.
 - **Filters on data that may be unknown** (`min_context`, `min_uptime`, `tools`, `json`, `vision`, `region`,
   `no_training`): by default an offer for which the data isn't known is kept, with the filter name in its
   `unverified` array (e.g. `["min_uptime"]`). `filters_unknown` counts those offers per filter, e.g.
@@ -545,9 +546,9 @@ _Example response as of 2026-09-15 — prices, providers and statuses change._
 }
 ```
 
-`via` is `"direct"` when the provider publishes the price itself, `"aggregator"` for an offer resold by an
-aggregator that isn't identified by name, or otherwise the id of the aggregator/router reselling it (e.g.
-`"nous"`) — the same model/provider pair can appear more than once via different
+`via` is `"direct"` when the provider publishes the price itself; otherwise the id of the aggregator or router reselling it
+(e.g. `"openrouter"`, `"nous"`); `"aggregator"` when the model was made by a lab and is sold by another provider, with
+no aggregator in between (the seller is then the provider named in `provider`) — the same model/provider pair can appear more than once via different
 routes, often at different prices. Stale offers (`"stale": true`) are not hidden here but always listed after
 every fresh offer, whatever the `sort`. `cheapest` is always the single cheapest offer across *all* pages, not just
 the current one, and follows the same rules as `/cheapest`: it is never a stale offer, an expired promotion, a

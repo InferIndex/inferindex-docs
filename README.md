@@ -14,35 +14,57 @@ backend itself — collection, parsers, data model — lives in a separate priva
 curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2"
 ```
 
-_Example response as of 2026-09-18 — prices, providers and statuses change._
+_Example response as of 2026-10-07 — prices, providers and statuses change._
 
 ```json
 {
   "query": "deepseek/deepseek-v3.2",
-  "model": { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek: DeepSeek V3.2" },
-  "other_matches": ["deepseek/deepseek-v3.2-exp", "deepseek/deepseek-v3.2-exp-thinking"],
+  "model": {
+    "id": "deepseek/deepseek-v3.2",
+    "name": "DeepSeek: DeepSeek V3.2"
+  },
+  "other_matches": [],
   "sort": "blended",
   "cheapest": {
-    "provider": "Nous Portal",
-    "via": "nous",
+    "provider": "GMICloud",
+    "via": "openrouter",
+    "via_name": "OpenRouter",
+    "offer_url": "https://openrouter.ai/models",
+    "offer_url_kind": "pricing",
     "tier": "standard",
     "input_per_1M": 0.2088,
     "output_per_1M": 0.3096,
     "cache_read_per_1M": 0.0216,
     "blended_per_1M": 0.234,
     "currency": "USD",
-    "quantization": "unknown",
-    "quantization_source": "unknown",
+    "quantization": "fp8",
+    "quantization_source": "declared",
     "context_length": 163840,
-    "promo": false,
-    "also_via": [],
+    "promo": true,
+    "also_via": [
+      "kilo"
+    ],
     "unverified": []
   },
   "offers": [
-    { "provider": "Nous Portal", "via": "nous", "blended_per_1M": 0.234, "…": "…" },
-    { "provider": "GMICloud", "via": "aggregator", "blended_per_1M": 0.234, "…": "…" }
+    {
+      "provider": "GMICloud",
+      "via": "openrouter",
+      "via_name": "OpenRouter",
+      "blended_per_1M": 0.234,
+      "…": "…"
+    },
+    {
+      "provider": "Nous Portal",
+      "via": "nous",
+      "via_name": "Nous Portal",
+      "blended_per_1M": 0.234,
+      "…": "…"
+    }
   ],
-  "hidden_tiers": { "flex": 1 },
+  "hidden_tiers": {
+    "flex": 1
+  },
   "filters_unknown": {},
   "strict": false
 }
