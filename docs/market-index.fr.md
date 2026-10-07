@@ -115,6 +115,11 @@ moins de 3 modèles n'a pas de valeur cette semaine-là** (`value: null`).
 une hypothèse. La médiane reste robuste aux cas extrêmes et facile à vérifier. Chaque publication donne la liste des
 modèles comptés dans chaque famille : n'importe qui peut refaire le calcul.
 
+**Variation à mêmes modèles.** À partir de la deuxième publication, chaque famille donne aussi la variation en %,
+depuis la publication précédente, du prix médian des modèles comptés dans les deux publications : l'entrée ou la
+sortie d'un modèle ne fait pas bouger le chiffre. Aucune variation n'est donnée quand moins de 3 modèles sont
+communs aux deux publications. Les modèles entrés et sortis sont listés à côté.
+
 ## Limites
 
 - **Ce n'est pas un indice à panier constant.** La composition d'une famille change quand un modèle arrive,
