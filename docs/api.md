@@ -739,6 +739,10 @@ Prices are in USD at the latest ECB rate published before each instant. `cheapes
 was eligible; `providers` is the number of providers considered that day. Any other `series` value, or
 `series=cheapest` with `at`, returns **400**.
 
+In this series, the points dated before 2026-10-08 may show `via: "aggregator"` for an offer whose seller was not
+named, such as one sold by OpenRouter; from 2026-10-08 such an offer shows its seller's own value (for example
+`"openrouter"`), and `"aggregator"` means, as in `/cheapest`, a lab's closed model sold by another provider.
+
 ### Exchange rates
 
 History prices are converted to USD at the **ECB rate of the day of the price**, not today's rate: the day of
