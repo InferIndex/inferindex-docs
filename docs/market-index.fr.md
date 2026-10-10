@@ -45,6 +45,7 @@ On part des offres **en vigueur à l'instant du calcul** (même règle que `/his
 - le prix unique d'une passerelle pour plusieurs fournisseurs non nommés ;
 - les offres périmées à cet instant (non revérifiées depuis plus de trois fois la fréquence de collecte de leur
   source, avec un minimum de six heures) ;
+- **À partir de la version 1.2**, les offres dont nous n'avons pas encore confirmé le changement de prix à cet instant ;
 - les offres signalées comme revendues sous le prix de liste du lab (`below_official_list`) ;
 - les niveaux de service non standard (flex, batch, priority) ;
 - les identifiants de modèle que le lab a redirigés vers un autre modèle ;
@@ -147,7 +148,7 @@ l'entrée en vigueur de la 1.2).
 |---|---|---|
 | 1.0 | 18/09/2026 | Première version |
 | 1.1 | 22/09/2026 | Définition écrite de « compact » pour les modèles fermés (mot de gamme du labo ou positionnement écrit du labo lui-même, jamais le prix) ; trois modèles passent en compacts : GLM-5.3 FlashX, Perplexity Sonar, Inception Mercury 2.5. Dans la série officielle, un prix de liste qui ne peut plus être relu compte 14 jours au plus. Appliquée dès la première publication |
-| 1.2 | 05/10/2026 (adoptée) ; s'applique à partir de la publication du 12/10/2026 | Une remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal dans la série de marché : un prix qui dure sans fin annoncée n'est plus une promotion. Mesuré sur la publication du 05/10/2026, qui n'est pas recalculée : aucune médiane de famille ne change, et cinq prix de référence baissent, tous dans `open_large`. |
+| 1.2 | 05/10/2026 (adoptée) ; s'applique à partir de la publication du 12/10/2026 | Une remise déclarée par un fournisseur, sans date de fin annoncée depuis 14 jours ou plus, compte comme un prix normal dans la série de marché : un prix qui dure sans fin annoncée n'est plus une promotion. Mesuré sur la publication du 05/10/2026, qui n'est pas recalculée : aucune médiane de famille ne change, et cinq prix de référence baissent, tous dans `open_large`. À partir de la même publication, une offre dont nous n'avons pas encore confirmé le changement de prix à l'instant mesuré n'est pas comptée. Aucune valeur publiée n'est modifiée. Seconde règle ajoutée le 10/10/2026, avant sa première application. |
 
 ## Accès
 
