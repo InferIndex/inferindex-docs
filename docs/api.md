@@ -75,7 +75,7 @@ Rely on the HTTP status and on field names; message wording may still be refined
 
 Returns the API name, `version` (currently `"0.6.0"`), a short English description of each public endpoint,
 `filters`: the accepted parameters of `/cheapest`, `/resellers` and `/history`, and `signals`: a short official
-description of each offer signal (`backend_unknown`, `aggregated_price`, `points_based`, `below_official_list`).
+description of each offer signal (`backend_unknown`, `aggregated_price`, `points_based`, `below_official_list`, `below_market`).
 
 ## Offer fields
 
@@ -101,6 +101,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `offer_url` | The public page of the seller of the offer, where it can be checked. The seller is the named aggregator (`via_name`) when the offer is sold through one, otherwise the provider. Either the seller's pricing page or, when `offer_url_kind` is `offer`, the seller's own page for this model, formed from the seller's page pattern and its own identifier for the model and checked before publication. Never formed from our identifiers. `null` when no reliable public page is known |
 | `offer_url_kind` | What `offer_url` leads to: `pricing` (the seller's pricing or model-list page, not this offer alone) or `offer` (the seller's own page for this model); `null` without `offer_url`. An address is `offer` only after the page was checked (it answers, without a redirect to the home page or to a list), and it is checked again every 7 days; when it stops answering, the offer goes back to the seller's pricing page and `pricing`. A page can change between two checks: treat any other value as `pricing`. Offers move from `pricing` to `offer` as their pages are checked, so the share of `offer` addresses grows over time |
 | `seller_url` | The home page of the seller of the offer (the named aggregator when the offer is sold through one, otherwise the provider). Given only when no public price page is known for that offer (`offer_url` is then `null`); it shows no price. `null` otherwise |
+| `retirement` | The seller of this offer has announced that it stops serving the model: `{ date (YYYY-MM-DD), source_url (the seller's or the lab's official page), read_at (when we last read that date on that page), replaced_by (id of the model named as replacement, when we track it) }`. Given only while the official page carries that date word for word and was read again within the last 7 days; once the date has passed, the field is no longer given. It changes neither the price nor the offer selected as the cheapest. Absent otherwise (the key is left out, not set to `null`, unlike `model.retirement`): no date known to us, which never means the model stays. In `detail=compact`, a short line carries the signal `retiring` and `retires_on` (the date) |
 | `peak_pricing` | For providers that charge more at peak hours: `{ input_per_1M, output_per_1M, hours }`, the peak rate in USD and the provider's description of peak hours (`hours` may be `null`). The main prices are the off-peak rate. `null` otherwise |
 | `price_context` | What the displayed price is, as a list of entries — empty for a plain price. Every percentage names its reference. See [Price context](#price-context) |
 | `official_list_price` | The lab's own list price for this model — `{ input_per_1M, output_per_1M, source_url, checked_at }` in USD — or `null` when the lab doesn't publish one. An offer that doesn't specify a region is compared with the lab's cheapest region; an offer for a given region (e.g. variant `eu` or `global`) with that same region |
@@ -109,6 +110,7 @@ description of each offer signal (`backend_unknown`, `aggregated_price`, `points
 | `aggregated_price` | `true` when a gateway publishes a single price for several backends it doesn't name (e.g. "cheapest available" or a default backend). The offer is still listed, but is never picked as the cheapest in `/cheapest` (reason code `aggregated_price`). Always `false` as of 2026-09-18 |
 | `backend_unknown` | `true` when a router publishes a price under its own name without saying which provider serves the model. A signal only: the offer is compared normally |
 | `points_based` | `true` when the source publishes its price in points or credits, converted to USD: what you actually pay depends on how you buy those points. The offer is still listed in `/resellers`, but is never picked as the cheapest (reason code `points_based`) |
+| `below_market` | Present only when the input and output prices are both more than 15 times below the median of the model's other providers (at least 3), and the price is not verified yet (verified: read at the same value by two independent reads of ours). An offer with a declared discount is judged on its price before the discount. The offer stays listed, never selected as the cheapest. An object `{ ratio, median_input_per_1M, median_output_per_1M, providers }`, where `ratio` is how many times below the median on the side that is less far below (input or output), to one decimal; absent otherwise. As of 2026-10-10, no offer carries it |
 
 `inferred` stays rare in responses by design: when the same provider is seen through several sources and one of
 them publishes the precision, the published value wins.
@@ -127,12 +129,13 @@ When the gateway doesn't name the backend, `provider` is the gateway itself and 
 | `scheduled` | Off-peak price of a published time-of-use schedule. Never a promotion | `tariff` (`"off_peak"`), `hours` (provider's description, may be `null`), `peak` (`{ input_per_1M, output_per_1M }`), `discount`, `reference: "peak"` |
 | `promotion` | Discount announced by the provider (`source: "provider"`), or confirmed when the price came back up (`source: "history"`) | `source`, `ends_at` (`null` when no end date is published), `discount`, `reference: "provider_usual"` |
 | `price_drop_observed` | Drop seen in the price history, with no announced promotion, or a discount declared by a provider with no announced end date for 14 days or more. Never shown as a promotion | `discount`, `reference: "previous_price"` |
+| `unstable_price` | The price changed at least 8 times in the last 7 days. The offer stays listed at its place, but is not selected as the cheapest offer by the API: the next offer is, if there is one | `changes`, `window_days`, `input_per_1M` and `output_per_1M` (each with `min` and `max`, the observed range) |
 | `below_lab_list` | Sold below the lab's official list price, with no declared discount | `discount`, `reference: "lab_list"` |
 | `service_tier` | Non-standard service level | `tier` (`flex`, `batch` or `priority`) |
 | `cached_input` | Price of cached input tokens, kept apart from `input_per_1M` | `cache_read_per_1M` |
 
 `discount` is the drop in blended price, from 0 to 1 (4 decimals), measured against its `reference`: the peak rate
-(`peak`), the provider's usual price (`provider_usual`), the previous observed price (`previous_price`) or the lab's
+(`peak`), the provider's usual price (`provider_usual`), the blended price the offer had before the drop began, kept while the offer stays low (`previous_price`) or the lab's
 list price (`lab_list`).
 
 _Example entries as of 2026-09-19 — prices, providers and statuses change._
@@ -154,6 +157,8 @@ appears once, at its lowest price for the chosen `sort`; at equal price, the dir
 where that price comes from and `also_via` lists the other sources selling the same offer. `context_length`,
 `uptime_30m`, `supports_tools`, `supports_json` and `supports_vision` are filled in from those other sources when the winning one doesn't publish
 them. For one line per source, without deduplication, use `/resellers`.
+
+The `model` object of `/cheapest` and `/resellers` carries `retirement`: the announced end of the model, `{ date, source_url, read_at, replaced_by? }`, in the same shape as the offer field `retirement`. It is given when the model's own lab announces it, or when every seller currently listing the model has announced a date (then the latest of them); one seller dropping a model that others keep selling is said on its offers only. `null` otherwise.
 
 | Parameter | Required | Meaning |
 |---|---|---|
@@ -899,6 +904,70 @@ _Example response as of 2026-09-19 — the ranking changes._
 
 Returns **404** until a first ranking has been computed.
 
+## `GET /rankings`
+
+Where a model stands in the public leaderboards we cite. The rank and the score are the source's, never computed by us.
+
+```bash
+curl "https://api.inferindex.dev/rankings?model=deepseek/deepseek-v3.2"
+```
+
+| Parameter | Required | Meaning |
+|---|---|---|
+| `model` | yes | Exact model id, e.g. `deepseek/deepseek-v3.2`; there is no fuzzy matching. An unknown id returns **404** |
+
+The response is `{ model, rankings, attribution }`. Each entry of `rankings` is one leaderboard:
+
+| Field | Meaning |
+|---|---|
+| `source`, `source_url`, `bench` | The leaderboard's source, its address and the series within it |
+| `listed_as` | The name the source lists the model under |
+| `setting` | A setting of the entry when the source gives one, `null` otherwise |
+| `rank`, `out_of` | The rank among the `out_of` entries ranked |
+| `score`, `score_lower`, `score_upper` | The score with the interval the source publishes |
+| `votes` | The source's count of votes or observations, `null` when the source does not give it; `scale.count_name` and `scale.count_description` say what it counts |
+| `published_on`, `checked_at` | The date the source published the leaderboard, and when we read it |
+| `scale` | What the score is called (`score_name`), how many decimals to show, whether it can be negative, what the interval is. Scores of different leaderboards are not on the same scale |
+| `distribution` | One score per entry of the source's leaderboard for that series, highest first, without names, to draw where the model sits |
+
+An empty `rankings` list means the source does not rank this model. The leaderboards are read once a day; a reading older than 30 days is not served, and neither is a leaderboard its source published more than 45 days ago.
+
+The data is licensed under CC BY 4.0. `attribution` carries the text to keep when you reuse it, with the links to the source, the dataset and the licence; the presentation is ours.
+
+_Example response as of 2026-10-11 — the ranks change. The `distribution` list is abridged._
+
+```json
+{
+  "model": { "id": "deepseek/deepseek-v3.2", "name": "DeepSeek: DeepSeek V3.2" },
+  "rankings": [
+    {
+      "source": "Arena",
+      "source_url": "https://arena.ai/leaderboard",
+      "bench": "text_style_control",
+      "listed_as": "deepseek-v3.2",
+      "setting": null,
+      "rank": 122,
+      "out_of": 414,
+      "score": 1424.79,
+      "score_lower": 1421.3,
+      "score_upper": 1428.29,
+      "votes": 48114,
+      "published_on": "2026-10-08",
+      "checked_at": "2026-10-11T06:31:35.057Z",
+      "scale": { "title": "Text Arena (style control)", "score_name": "Arena Score", "score_decimals": 0, "score_signed": false, "count_name": "votes" },
+      "distribution": [1525.4, 1507.08, "…"]
+    }
+  ],
+  "attribution": {
+    "text": "Rankings from the Arena leaderboard dataset, licensed under CC BY 4.0; presentation by InferIndex",
+    "source_url": "https://arena.ai/leaderboard",
+    "dataset_url": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/"
+  }
+}
+```
+
 ## `GET /models`
 
 Search tracked models by name or id fragment.
@@ -1268,7 +1337,7 @@ Fields in **both** views (`detail=compact` and `detail=full`):
 | `required_tokens_per_second` | Minimum throughput, in input plus output tokens per second, that the whole configuration (all GPUs together) must deliver while serving for self-hosting to cost less than the API: `at_full_utilization` if it were busy all the time, `at_utilization` at `utilization_percent`. With a volume, `for_your_volume` gives the same two figures for serving that volume itself. `null` when the API offer is free. |
 | `break_even_utilization_percent` | Per scenario (prudent, median, optimistic): the average utilization above which self-hosting costs less, whatever the number of GPUs. Above 100 means never at that throughput. `null` when there are no scenarios: no throughput is known at all (`confidence` `none`), the verdict needs none (`not_needed`), or only a published minimum exists. When the API offer is free and scenarios exist, it is an object whose three values are `null`: there is no break-even. Absent from a refusal. |
 | `utilization_percent` | The utilization used. |
-| `api` | The API offer compared: `provider`, `usd_per_m_tokens`, `checked_at`, `offers_compared`, `mix`, `basis` ("cheapest of N current standard offers…, promotions and unstable prices excluded"). |
+| `api` | The API offer compared: `provider`, `usd_per_m_tokens`, `checked_at`, `offers_compared`, `mix`, `basis` ("cheapest of N current standard offers…, promotions, unstable prices and unverified prices far below those of the other providers excluded"). |
 | `configuration` | The GPU configuration. **Compact view:** `gpu`, `gpus`, `provider`, `tier`, `usd_per_hour`. **Full view:** `vendor`, `gpu_id`, `gpu_name`, `gpus_needed`, `gpus_billed`, `provider`, `region`, `tier`, hourly, per-GPU and daily prices, `vram_total_gb`, `weights_share`, `checked_at`, `source_url`, `throughput_evidence` (what is known about the throughput of this configuration; it can differ from `confidence`, which says what the verdict rests on), `engine_note` when we have no throughput for this model on this card, and, when we picked a configuration that is not the cheapest, `cheapest_alternative` and `selection_reason`. |
 | `fetched_at` | When the answer was built. |
 | `settled_alternative` | Present only when the configuration the answer is about has no verdict that published figures can decide (`self_host_needs_throughput`) and a dearer rented configuration has one: the cheapest such setup (card, number of GPUs, provider, tier, hourly and daily price with `checked_at` and `source_url`), its `verdict` (`self_host_cheaper_above`, or `self_host_above_utilization` with `busy_at_least_percent`, the share of the time it must be busy: for a measured value the break-even utilization of the prudent scenario, for a published minimum a utilization at which the floor is enough), the `confidence` it rests on (`measured` or `lower_bound`) and its break-even volume. It is another, dearer setup, shown for comparison; it is not a recommendation and it is never used in place of the configuration the answer is about. The verdict summarises the prudent case: asking for that configuration directly can return `self_host_needs_throughput`. An alternative resting on a published minimum holds for requests of up to 2,048 tokens in total. With a volume, it is shown only if that setup is cheaper at your volume and can serve it; the "busy at least" form exists only without a volume. Absent when you impose a card (`gpu`) or give `tokens_per_second`; with `gpu_count` alone, only configurations of that size are considered. |
@@ -1546,6 +1615,8 @@ integration depends on this API.
 
 Service status: https://status.inferindex.dev (external uptime monitoring) shows current and past availability.
 The API still comes with no uptime guarantee.
+
+`warnings` lists conditions worth knowing that do not make the API unready, such as a price source in error. When a reference data source (data that is not a price, such as published throughput figures) has not been fully read for more than 48 hours, it says `N reference data source(s) not fully read for more than 48 h`. A warning appears only while its condition holds.
 
 ```bash
 curl "https://api.inferindex.dev/health/ready"
