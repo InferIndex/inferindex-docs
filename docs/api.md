@@ -23,8 +23,22 @@ curl -H "x-api-key: YOUR_KEY" "https://api.inferindex.dev/resellers?model=deepse
 ```
 
 An unknown or revoked key returns **401** — the request is not silently served as anonymous, so remove the
-header rather than sending an invalid key. Free API keys will be offered; self-service sign-up isn't available
-yet.
+header rather than sending an invalid key.
+
+### API keys
+
+A free API key is optional: the API works without one, at 60 requests per minute. A free account at
+https://inferindex.dev/account/en (also in French at https://inferindex.dev/account/fr) gives you a key that raises
+the limit to 300 requests per minute.
+
+- There is no password. You sign in with a one-time link sent to your email address (valid for 15 minutes), or with your
+  GitHub or Google account.
+- The key is shown once, when you create it. We only store a fingerprint of it, so it cannot be shown again: if you lose
+  it, regenerate it from your account.
+- From your account you can regenerate the key (the current one stops working), revoke it, and delete the account. Deleting
+  the account removes your email address and revokes the key.
+- The key is personal: keep it private, and don't share it or resell it.
+- What we keep and why is in the [privacy policy](https://api.inferindex.dev/privacy).
 
 ## Model identifiers
 
