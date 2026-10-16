@@ -163,7 +163,7 @@ The `model` object of `/cheapest` and `/resellers` carries `retirement`: the ann
 | Parameter | Required | Meaning |
 |---|---|---|
 | `model` | yes | Model id, e.g. `deepseek/deepseek-v3.2`. A partial name also works but may be `ambiguous`, see [Model identifiers](#model-identifiers) |
-| `sort` | no | `blended` (default), `input`, `output` or `estimated_cost` (needs usage parameters) |
+| `sort` | no | `blended`, `input`, `output` or `estimated_cost`. Default: `blended`, the 3:1 mix; when `prompt_tokens` or `output_tokens` is given, `estimated_cost`, the cost of your workload |
 | `min_context` | no | Minimum context window, in tokens |
 | `min_uptime` | no | Minimum 30-minute uptime, percent (aggregator-observed, see `uptime_provenance`) |
 | `tools` | no | `true` to keep only offers that support tool calling |
@@ -358,6 +358,7 @@ more than `considered − eligible`.
 | `no_fx_rate` | (count only) no exchange rate for the source's currency |
 | `quantization_mismatch` | Quantization not in `quantization` |
 | `context_too_small` / `context_unknown_strict` | Context below `min_context` / unknown, with `strict=true` |
+| `output_too_large` / `max_output_unknown_strict` | `output_tokens` above the longest output the offer publishes / that output unknown, with `strict=true` |
 | `uptime_below_min` / `uptime_unknown_strict` | Uptime below `min_uptime` / unknown, with `strict=true` |
 | `tools_unsupported` / `tools_unknown_strict` | No tool calling / unknown, with `strict=true` |
 | `json_unsupported` / `json_unknown_strict` | No JSON output / unknown, with `strict=true` |
@@ -450,7 +451,9 @@ today; `no_waitlist=true&strict=true` therefore excludes almost everything for n
 
 `/cheapest` and `/resellers` can estimate what a workload would cost at each offer. Pass `prompt_tokens` and/or
 `output_tokens` (plus optionally `cached_ratio` and `requests_per_day`); without them, responses are unchanged.
-Add `sort=estimated_cost` to rank offers by estimated cost per request instead of list price.
+With these parameters and no `sort`, offers are ranked by estimated cost per request, and the cheapest is the offer whose workload costs least; without them, by the 3:1 blended price. `sort=blended` ranks by the 3:1 blended price instead.
+
+An offer must be able to run the request. If its published context window is smaller than `prompt_tokens` + `output_tokens`, or its longest published output is smaller than `output_tokens`, `/cheapest` never picks it and `/resellers` lists it after the compatible offers. When the context window or the maximum output is not published, the offer is kept and flagged (`unverified`, `filters_unknown`) and excluded with `strict=true`.
 
 ```bash
 curl "https://api.inferindex.dev/cheapest?model=deepseek/deepseek-v3.2&prompt_tokens=2000&output_tokens=500&cached_ratio=0.5&requests_per_day=1000&sort=estimated_cost"
@@ -496,6 +499,8 @@ Here: 1,000 uncached prompt tokens × $0.2088/M + 1,000 cached tokens × $0.0216
 | `cache_price_unknown` | No cache price published: the input price is used for the cached part |
 | `peak_pricing` | The price depends on the time of the call (peak / off-peak): the estimate uses the normal rate |
 | `exceeds_context` | Prompt + output is larger than the offer's context window — the offer is still listed |
+| `exceeds_max_output` | `output_tokens` is larger than the longest output the offer publishes — the offer is still listed |
+| `max_output_unknown` | The offer does not publish its longest output |
 
 Brackets can depend on prompt size, on output size, or both; bracket prices published in another currency are
 converted to USD at the current rate.
@@ -1363,7 +1368,7 @@ Only in the **full** view:
 ### Refusals
 
 We decline to give a number rather than an unreliable one. A refusal is a 200 response: `status: "refused"`, `verdict: null`, a `reason`, a `message` and a `detail`.
-`reason` is one of `model_closed_or_unsized`, `quantization_not_published`, `unknown_gpu`, `gpu_not_rented`, `weights_exceed_margin`, `no_rental_configuration`, `gpu_memory_unknown`, `no_api_price`; the meaning of each is in [How the answer is built](self-host.md#5-when-we-decline-to-answer).
+`reason` is one of `model_closed_or_unsized`, `quantization_not_published`, `unknown_gpu`, `gpu_not_rented`, `weights_exceed_margin`, `no_rental_configuration`, `gpu_memory_unknown`, `no_api_price`, `no_api_offer_fits`; the meaning of each is in [How the answer is built](self-host.md#5-when-we-decline-to-answer).
 
 ### Examples
 
