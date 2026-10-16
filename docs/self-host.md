@@ -186,6 +186,7 @@ We decline to give a number rather than an unreliable one. A refusal is a normal
 | `no_rental_configuration` | No provider publishes a configuration with the number of GPUs you asked for. |
 | `weights_exceed_margin` | The weights do not fit within the margin on the configuration you asked for. `detail` gives the memory needed and available and the smallest configuration that fits. |
 | `no_api_price` | There is no current API offer to compare with (none is publishable, current, standard and stable): see `/cheapest`. |
+| `no_api_offer_fits` | No current API offer can run this request: their published context window or maximum output is too small. See `/cheapest` with the same `prompt_tokens` and `output_tokens`. |
 
 Other responses: a parameter out of range returns a 400 that names the parameter; a model that is not in our catalogue returns a 404 with suggestions.
 
