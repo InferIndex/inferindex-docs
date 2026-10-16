@@ -108,7 +108,7 @@ _Réponse au 16/10/2026, abrégée._
 {
   "model": { "id": "meta-llama/llama-3.3-70b-instruct" },
   "total_offers": 4,
-  "filters_unknown": { "region": 53, "no_training": 26, "quantization": 9 },
+  "filters_unknown": { "region": 54, "no_training": 26, "quantization": 9 },
   "excluded": { "region_unknown_strict": 54, "region_mismatch": 8, "training_unknown_strict": 26, "training_not_excluded": 6 },
   "offers": [
     { "provider": "CloudFerro", "blended_per_1M": 0.4763, "conditions": { "provider": { "regions": { "value": "EU (Poland)" }, "training_on_prompts": { "value": "no" } } } },
