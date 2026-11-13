@@ -235,6 +235,7 @@ look up prices for you:
 | `compare_providers(model, sort, limit, …)` | Every offer, one line per provider, with usage conditions and reliability |
 | `price_history(model, days \| from + to \| at, granularity, provider, limit)` | Offer price history, plus the lab's official prices |
 | `estimate_cost(model, prompt_tokens, output_tokens, cached_ratio, requests_per_day)` | Estimated cost per request and per month, sorted |
+| `provider_ranking()` | Providers ranked by the median gap of their prices to the market price, with the number of models where each holds the cheapest offer |
 | `list_gpus()` | GPU types tracked for rental prices, with the lowest price of each tier |
 | `gpu_rentals(gpu, tier, gpu_count, region, detail)` | Rental offers for one GPU, one block per tier |
 | `self_host_or_api(model, tokens_per_day, utilization, …)` | Self-host an open-weights model on rented GPUs, or use the cheapest API offer? Hardware rental only, see [how the answer is built](docs/self-host.md) |
