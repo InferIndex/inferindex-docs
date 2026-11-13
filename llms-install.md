@@ -34,8 +34,8 @@ provide one.
 
 ## Check that it works
 
-After installing, the server should expose five tools: `search_models`, `cheapest`, `compare_providers`,
-`price_history` and `estimate_cost`. Try one of these prompts:
+After installing, the server should list its tools (the MCP `tools/list` method), including `search_models`, `cheapest`,
+`compare_providers`, `price_history` and `estimate_cost`. Try one of these prompts:
 
 1. "Using InferIndex, which provider is currently the cheapest for DeepSeek V3.2?"
 2. "Compare every provider for `openai/gpt-oss-120b` that processes requests in the EU."
