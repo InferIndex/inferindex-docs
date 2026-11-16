@@ -5,6 +5,7 @@
   "description": "LLM API prices across 100+ providers: cheapest offer, comparisons, history and cost estimates.",
   "repository": { "url": "https://github.com/InferIndex/inferindex-docs", "source": "github" },
   "websiteUrl": "https://api.inferindex.dev",
-  "version": "1.0.1",
+  "icons": [ { "src": "https://inferindex.dev/icon.svg", "mimeType": "image/svg+xml", "sizes": ["any"] } ],
+  "version": "1.0.2",
   "remotes": [ { "type": "streamable-http", "url": "https://mcp.inferindex.dev/mcp" } ]
 }
