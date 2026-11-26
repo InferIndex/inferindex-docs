@@ -1,9 +1,13 @@
 # InferIndex
 
-InferIndex finds the cheapest provider for a given LLM, across more than 60 tracked pricing sources — direct provider
-APIs and aggregators/routers — with price history and promotion detection.
+**Website**: https://inferindex.dev/
 
 **Live API**: https://api.inferindex.dev
+
+**MCP server**: https://mcp.inferindex.dev/mcp
+
+InferIndex finds the cheapest provider for a given LLM, across more than 60 tracked pricing sources — direct provider
+APIs and aggregators/routers — with price history and promotion detection.
 
 **Service status**: https://status.inferindex.dev (external uptime monitoring)
 
